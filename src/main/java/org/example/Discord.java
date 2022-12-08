@@ -12,13 +12,16 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public class Discord extends ListenerAdapter {
 
     private static JDA jda;
     private static String DM;
+    private static List<BotUserModel> USERS;
 
-    public static void sendMessage(String message){
+    public static void sendMessage(List<BotUserModel> users, String message){
+        USERS = users;
         DM = message;
         Discord bot = new Discord();
         try {
@@ -47,8 +50,10 @@ public class Discord extends ListenerAdapter {
 
     @Override
     synchronized public void onReady(@NotNull ReadyEvent event) {
-        jda.openPrivateChannelById("320630680386273283").queue((privateChannel -> privateChannel.sendMessage(DM).queue()));
-        onShutdown(new ShutdownEvent(jda,  OffsetDateTime.now(), 1));
+        for (BotUserModel user : USERS) {
+            jda.openPrivateChannelById(user.getDiscordID()).queue((privateChannel -> privateChannel.sendMessage(DM).queue()));
+            onShutdown(new ShutdownEvent(jda, OffsetDateTime.now(), 1));
+        }
     }
 
     @Override
