@@ -5,6 +5,7 @@ import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
+import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
@@ -78,7 +79,7 @@ public class TwitchLiveBot {
 //        });
     }
 
-    private void loadFile() {
+    public void loadFile() {
         File file = new File("streamNotifications.txt");
         try {
             if (!file.createNewFile()) {
@@ -91,6 +92,7 @@ public class TwitchLiveBot {
                         channelUsers.put(user[0], List.of(new BotUserModel(user[1], user[2])));
                     }
                 }
+                scanner.close();
             }
         } catch (Exception exception) {
             log.error("File loading failed!", exception);

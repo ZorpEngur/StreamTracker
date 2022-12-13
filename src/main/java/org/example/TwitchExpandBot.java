@@ -4,14 +4,16 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
-import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
-import com.github.twitch4j.events.ChannelChangeGameEvent;
-import com.github.twitch4j.events.ChannelChangeTitleEvent;
-import com.github.twitch4j.events.ChannelGoLiveEvent;
+import lombok.extern.slf4j.Slf4j;
 
-import java.time.LocalDateTime;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 public class TwitchExpandBot {
 
     private final String CHANNEL = "zorpengur";
@@ -33,7 +35,20 @@ public class TwitchExpandBot {
 
 
         twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-            System.out.println("hi");
+            if (event.getUser().getName().equalsIgnoreCase("zorpengur") &&
+                event.getMessage().startsWith("set")) {
+                try {
+                    FileWriter fileWriter = new FileWriter("streamNotifications.txt", true);
+                    List<String> message = Arrays.stream(event.getMessage().split(" ")).collect(Collectors.toList());
+                    message.removeIf(string -> string.strip().equals(""));
+                    fileWriter.write(String.format("%s,%s,%s\n", message.get(1), message.get(2), message.get(3)));
+                    fileWriter.close();
+                    twitchLiveBot.loadFile();
+                    twitchLiveBot.registerFeatures();
+                } catch (IOException ex) {
+                    log.error("failed to add new user", ex);
+                }
+            }
         });
     }
 
