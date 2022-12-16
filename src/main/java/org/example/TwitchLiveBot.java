@@ -85,11 +85,14 @@ public class TwitchLiveBot {
             if (!file.createNewFile()) {
                 Scanner scanner = new Scanner(file);
                 while (scanner.hasNext()) {
-                    String[] user = scanner.nextLine().split(",");
-                    if (channelUsers.containsKey(user[0])) {
-                        channelUsers.get(user[0]).add(new BotUserModel(user[1], user[2]));
-                    } else {
-                        channelUsers.put(user[0], List.of(new BotUserModel(user[1], user[2])));
+                    String text = scanner.nextLine();
+                    if (!text.isBlank()) {
+                        String[] user = text.split(",");
+                        if (channelUsers.containsKey(user[0])) {
+                            channelUsers.get(user[0]).add(new BotUserModel(user[1], user[2]));
+                        } else {
+                            channelUsers.put(user[0], new ArrayList<>(List.of(new BotUserModel(user[1], user[2]))));
+                        }
                     }
                 }
                 scanner.close();
@@ -100,8 +103,8 @@ public class TwitchLiveBot {
     }
 
     public void registerFeatures() {
+        twitchClient.getClientHelper().enableStreamEventListener(channelUsers.keySet());
         for (String channel : channelUsers.keySet()) {
-            twitchClient.getClientHelper().enableStreamEventListener(channel);
             twitchClient.getChat().joinChannel(channel);
         }
     }
