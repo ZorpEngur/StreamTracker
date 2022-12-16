@@ -41,7 +41,8 @@ public class TwitchExpandBot {
                     FileWriter fileWriter = new FileWriter("streamNotifications.txt", true);
                     List<String> message = Arrays.stream(event.getMessage().split(" ")).collect(Collectors.toList());
                     message.removeIf(string -> string.strip().equals(""));
-                    fileWriter.write(String.format("%s,%s,%s\n", message.get(1), message.get(2), message.get(3)));
+                    fileWriter.write(String.format("\n%s,%s,%s", message.get(1), message.get(2), message.get(3)));
+                    fileWriter.flush();
                     fileWriter.close();
                     twitchLiveBot.loadFile();
                     twitchLiveBot.registerFeatures();
