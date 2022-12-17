@@ -39,13 +39,14 @@ public class TwitchExpandBot {
                 event.getMessage().startsWith("set")) {
                 try {
                     FileWriter fileWriter = new FileWriter("streamNotifications.txt", true);
-                    List<String> message = Arrays.stream(event.getMessage().split(" ")).collect(Collectors.toList());
+                    List<String> message = Arrays.stream(event.getMessage().toLowerCase().split(" ")).collect(Collectors.toList());
                     message.removeIf(string -> string.strip().equals(""));
                     fileWriter.write(String.format("\n%s,%s,%s", message.get(1), message.get(2), message.get(3)));
                     fileWriter.flush();
                     fileWriter.close();
                     twitchLiveBot.loadFile();
                     twitchLiveBot.registerFeatures();
+                    twitchClient.getChat().sendMessage("ZorpEngur", "Added!");
                 } catch (IOException ex) {
                     log.error("failed to add new user", ex);
                 }
@@ -56,5 +57,9 @@ public class TwitchExpandBot {
     public void registerFeatures() {
         twitchClient.getClientHelper().enableStreamEventListener(CHANNEL);
         twitchClient.getChat().joinChannel(CHANNEL);
+    }
+
+    public void destroy(){
+        twitchClient.close();
     }
 }
