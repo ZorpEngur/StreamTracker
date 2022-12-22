@@ -40,9 +40,9 @@ public class TwitchLiveBot {
 
         twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
             List<BotUserModel> users = new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase()));
-            users.removeIf(u -> u.getLastPing().isBefore(LocalDateTime.now().minusMinutes(10)));
-            Discord.sendMessage(users, event.getChannel().getName() + " went live! (title)");
+            users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
             users.forEach(u -> u.setLastPing(LocalDateTime.now()));
+            Discord.sendMessage(users, event.getChannel().getName() + " went live! (title)");
         });
 
         twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
@@ -52,25 +52,25 @@ public class TwitchLiveBot {
                 throw new RuntimeException(e);
             }
             List<BotUserModel> users = new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase()));
-            users.removeIf(u -> u.getLastPing().isBefore(LocalDateTime.now().minusMinutes(10)));
-            Discord.sendMessage(users, event.getChannel().getName() + " went live! (game)");
+            users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
             users.forEach(u -> u.setLastPing(LocalDateTime.now()));
+            Discord.sendMessage(users, event.getChannel().getName() + " went live! (game)");
         });
 
         twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
             List<BotUserModel> users = new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase()));
-            users.removeIf(u -> u.getLastPing().isBefore(LocalDateTime.now().minusMinutes(10)));
-            Discord.sendMessage(users, event.getChannel().getName() + " went live! (live)");
+            users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
             users.forEach(u -> u.setLastPing(LocalDateTime.now()));
+            Discord.sendMessage(users, event.getChannel().getName() + " went live! (live)");
         });
 
         twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
             if ((event.getMessage().contains("NEW TITLE!") || event.getMessage().contains("NEW GAME!")) && event.getMessageEvent().getUserName().equalsIgnoreCase("TitleChange_Bot")) {
                 List<BotUserModel> users = new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase()));
-                users.removeIf(u -> u.getLastPing().isBefore(LocalDateTime.now().minusMinutes(10)));
+                users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
                 users.removeIf(u -> !event.getMessage().toLowerCase().contains(u.getName().toLowerCase()));
-                Discord.sendMessage(users, event.getChannel().getName() + " went live! (live predict)");
                 users.forEach(u -> u.setLastPing(LocalDateTime.now()));
+                Discord.sendMessage(users, event.getChannel().getName() + " went live! (live predict)");
             }
         });
 
@@ -79,9 +79,9 @@ public class TwitchLiveBot {
 //        });
     }
 
-    public void loadFile() {
+    private void loadFile() {
         channelUsers = new HashMap<>();
-        File file = new File("streamNotifications.txt");
+        File file = new File(System.getenv().get("BOTFILE") + "streamNotifications.txt");
         try {
             if (!file.createNewFile()) {
                 Scanner scanner = new Scanner(file);
@@ -89,11 +89,7 @@ public class TwitchLiveBot {
                     String text = scanner.nextLine();
                     if (!text.isBlank()) {
                         String[] user = text.split(",");
-                        if (channelUsers.containsKey(user[0])) {
-                            channelUsers.get(user[0]).add(new BotUserModel(user[1], user[2]));
-                        } else {
-                            channelUsers.put(user[0], new ArrayList<>(List.of(new BotUserModel(user[1], user[2]))));
-                        }
+                        addUser(user[0], user[1], user[2]);
                     }
                 }
                 scanner.close();
@@ -103,10 +99,20 @@ public class TwitchLiveBot {
         }
     }
 
+    public void addUser(String channel, String name, String discordID) {
+        if (channelUsers.containsKey(channel)) {
+            channelUsers.get(channel).add(new BotUserModel(name, discordID));
+        } else {
+            channelUsers.put(channel, new ArrayList<>(List.of(new BotUserModel(name, discordID))));
+        }
+    }
+
     public void registerFeatures() {
         twitchClient.getClientHelper().enableStreamEventListener(channelUsers.keySet());
         for (String channel : channelUsers.keySet()) {
-            twitchClient.getChat().joinChannel(channel);
+            if (!twitchClient.getChat().getChannels().contains(channel)) {
+                twitchClient.getChat().joinChannel(channel);
+            }
         }
     }
 

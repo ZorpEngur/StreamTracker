@@ -30,6 +30,7 @@ public class TwitchExpandBot {
                 .withEnableHelix(true)
                 .withDefaultAuthToken(credential)
                 .withEnableChat(true)
+                .withChatAccount(credential)
                 .build();
 
 
@@ -38,15 +39,15 @@ public class TwitchExpandBot {
             if (event.getUser().getName().equalsIgnoreCase("zorpengur") &&
                 event.getMessage().startsWith("set")) {
                 try {
-                    FileWriter fileWriter = new FileWriter("streamNotifications.txt", true);
+                    FileWriter fileWriter = new FileWriter(System.getenv().get("BOTFILE") + "streamNotifications.txt", true);
                     List<String> message = Arrays.stream(event.getMessage().toLowerCase().split(" ")).collect(Collectors.toList());
                     message.removeIf(string -> string.strip().equals(""));
                     fileWriter.write(String.format("\n%s,%s,%s", message.get(1), message.get(2), message.get(3)));
                     fileWriter.flush();
                     fileWriter.close();
-                    twitchLiveBot.loadFile();
+                    twitchLiveBot.addUser(message.get(1), message.get(2), message.get(3));
                     twitchLiveBot.registerFeatures();
-                    twitchClient.getChat().sendMessage("ZorpEngur", "Added!");
+                    twitchClient.getChat().sendMessage(CHANNEL, "Added!");
                 } catch (IOException ex) {
                     log.error("failed to add new user", ex);
                 }
