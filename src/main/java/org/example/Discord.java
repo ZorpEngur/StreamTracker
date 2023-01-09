@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -21,6 +22,8 @@ public class Discord extends ListenerAdapter {
     private static List<BotUserModel> USERS;
 
     public static void sendMessage(List<BotUserModel> users, String message){
+        users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
+        users.forEach(u -> u.setLastPing(LocalDateTime.now()));
         USERS = users;
         DM = message;
         Discord bot = new Discord();
