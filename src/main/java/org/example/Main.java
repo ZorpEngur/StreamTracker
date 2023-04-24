@@ -8,7 +8,8 @@ public class Main {
         TwitchLiveBot twitchLiveBot = null;
         while (true) {
             try {
-                twitchLiveBot = new TwitchLiveBot();
+                twitchLiveBot = new TwitchLiveBot(System.getenv().get("BOTFILE") + "streamNotifications.txt");
+                twitchLiveBot.startBot();
                 twitchLiveBot.registerFeatures();
                 break;
             } catch (Exception ex) {
@@ -22,7 +23,8 @@ public class Main {
         TwitchExpandBot twitchExpandBot = null;
         while (true) {
             try {
-                twitchExpandBot = new TwitchExpandBot(twitchLiveBot);
+                twitchExpandBot = new TwitchExpandBot(twitchLiveBot, "zorpengur",  System.getenv().get("BOTFILE") + "streamNotifications.txt");
+                twitchExpandBot.startBot();
                 twitchExpandBot.registerFeatures();
                 break;
             } catch (Exception ex) {
@@ -34,6 +36,5 @@ public class Main {
         }
 
         System.out.println("---------- Bot Running ----------");
-
     }
 }
