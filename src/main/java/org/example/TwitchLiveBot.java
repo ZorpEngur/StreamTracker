@@ -5,31 +5,29 @@ import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
-import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.time.LocalDateTime;
 import java.util.*;
 
-@Slf4j
+@Slf4j @RequiredArgsConstructor
 public class TwitchLiveBot {
 
-    private static Map<String, List<BotUserModel>> channelUsers;
-    private final TwitchClient twitchClient;
-    private final Server server = null;
+    private final Map<String, List<BotUserModel>> channelUsers = new HashMap<>();
+    private TwitchClient twitchClient;
 
-    public TwitchLiveBot() {
+    private final String fileName;
+
+    public void startBot() {
         loadFile();
 
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
         OAuth2Credential credential = new OAuth2Credential("zorpengurbot", "mgqjwj0paxya5h69ql6bajd1vz4gb1");
-
-        //server = new Server(); not used, too complicated to do networking
 
         twitchClient = clientBuilder
                 .withDefaultEventHandler(SimpleEventHandler.class)
@@ -38,17 +36,22 @@ public class TwitchLiveBot {
                 .withEnableChat(true)
                 .build();
 
+        registerEvents();
+    }
+
+    private void registerEvents() {
+        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+            System.out.println("pog");
+            Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (live)");
+        });
+
         twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
             Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (title)");
         });
 
-        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-            Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (live)");
-        });
-
         twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
             try {
-                wait(1000);
+                wait(1000); //delay for concurrent title and game change
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -62,16 +65,10 @@ public class TwitchLiveBot {
                 Discord.sendMessage(users, event.getChannel().getName() + " went live! (live predict)");
             }
         });
-
-//        twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-//            System.out.println("hi");
-//        });
-//        happE ￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼￼ @ZorpEngur
     }
 
-    private void loadFile() {
-        channelUsers = new HashMap<>();
-        File file = new File(System.getenv().get("BOTFILE") + "streamNotifications.txt");
+    public void loadFile() {
+        File file = new File(fileName);
         try {
             if (!file.createNewFile()) {
                 Scanner scanner = new Scanner(file);

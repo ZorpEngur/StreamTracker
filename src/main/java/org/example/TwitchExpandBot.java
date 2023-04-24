@@ -16,14 +16,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TwitchExpandBot {
 
-    private final String CHANNEL = "zorpengur";
-    private final TwitchClient twitchClient;
+    private final String channel;
+    private TwitchClient twitchClient = null;
+    private final String file;
+    private final TwitchLiveBot twitchLiveBot;
 
-    public TwitchExpandBot(TwitchLiveBot twitchLiveBot) {
+    public TwitchExpandBot(TwitchLiveBot twitchLiveBot, String channel, String file) {
+        this.twitchLiveBot = twitchLiveBot;
+        this.channel = channel;
+        this.file = file;
+    }
+
+    public void startBot() {
+        System.out.println("WTF");
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
         OAuth2Credential credential = new OAuth2Credential("zorpengurbot", "mgqjwj0paxya5h69ql6bajd1vz4gb1");
-
 
         twitchClient = clientBuilder
                 .withDefaultEventHandler(SimpleEventHandler.class)
@@ -33,31 +41,32 @@ public class TwitchExpandBot {
                 .withChatAccount(credential)
                 .build();
 
-
-
         twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-            if (event.getUser().getName().equalsIgnoreCase("zorpengur") &&
-                event.getMessage().startsWith("set")) {
-                try {
-                    FileWriter fileWriter = new FileWriter(System.getenv().get("BOTFILE") + "streamNotifications.txt", true);
-                    List<String> message = Arrays.stream(event.getMessage().toLowerCase().split(" ")).collect(Collectors.toList());
-                    message.removeIf(string -> string.strip().equals(""));
-                    fileWriter.write(String.format("\n%s,%s,%s", message.get(1), message.get(2), message.get(3)));
-                    fileWriter.flush();
-                    fileWriter.close();
-                    twitchLiveBot.addUser(message.get(1), message.get(2), message.get(3));
-                    twitchLiveBot.registerFeatures();
-                    twitchClient.getChat().sendMessage(CHANNEL, "Added!");
-                } catch (IOException ex) {
-                    log.error("failed to add new user", ex);
-                }
+            if (event.getUser().getName().equalsIgnoreCase("zorpengur") && event.getMessage().startsWith("set")) {
+                addUser(event.getMessage(), twitchLiveBot);
             }
         });
     }
 
+    public void addUser(String message, TwitchLiveBot twitchLiveBot){
+        try {
+            FileWriter fileWriter = new FileWriter(file, true);
+            List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
+            data.removeIf(string -> string.strip().equals(""));
+            fileWriter.write(String.format("%s,%s,%s\n", data.get(1), data.get(2), data.get(3)));
+            fileWriter.flush();
+            fileWriter.close();
+            twitchLiveBot.addUser(data.get(1), data.get(2), data.get(3));
+            twitchLiveBot.registerFeatures();
+            twitchClient.getChat().sendMessage(channel, "Added!");
+        } catch (IOException ex) {
+            log.error("failed to add new user", ex);
+        }
+    }
+
     public void registerFeatures() {
-        twitchClient.getClientHelper().enableStreamEventListener(CHANNEL);
-        twitchClient.getChat().joinChannel(CHANNEL);
+        twitchClient.getClientHelper().enableStreamEventListener(channel);
+        twitchClient.getChat().joinChannel(channel);
     }
 
     public void destroy(){
