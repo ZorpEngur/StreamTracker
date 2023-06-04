@@ -2,6 +2,7 @@ package org.example;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
@@ -15,14 +16,35 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+/**
+ * Bot that send the message on discord.
+ */
+@Slf4j
 public class Discord extends ListenerAdapter {
 
+    /**
+     * The bot JDA.
+     */
     private static JDA jda;
+
+    /**
+     * Message that should be sent,
+     */
     private static String DM;
+
+    /**
+     * List of users that should receive the message.
+     */
     private static List<BotUserModel> USERS;
 
+    /**
+     * Creates the bot that sends the message and shutdowns itself.
+     *
+     * @param users List of users that should receive the message.
+     * @param message The message to be sent.
+     */
     public static void sendMessage(List<BotUserModel> users, String message){
-        users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(10)));
+        users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(5)));
         users.forEach(u -> u.setLastPing(LocalDateTime.now()));
         USERS = users;
         DM = message;
@@ -31,7 +53,7 @@ public class Discord extends ListenerAdapter {
             GlobalScreen.registerNativeHook();
         }
         catch (NativeHookException ex) {
-            //log.error("There was a problem registering the native hook.", ex);
+            log.error("There was a problem registering the native hook.", ex);
             System.exit(1);
         }
 
@@ -47,10 +69,15 @@ public class Discord extends ListenerAdapter {
         }
         catch (Exception e)
         {
-            //log.error("Bot building error", e);
+            log.error("Bot building error", e);
         }
     }
 
+    /**
+     * Event that sends the message when the bot is ready.
+     *
+     * @param event Event created by the bot.
+     */
     @Override
     synchronized public void onReady(@NotNull ReadyEvent event) {
         for (BotUserModel user : USERS) {
@@ -59,6 +86,11 @@ public class Discord extends ListenerAdapter {
         }
     }
 
+    /**
+     * Shutdown when the bot is done sending messages.
+     *
+     * @param event Shutdown event.
+     */
     @Override
     public void onShutdown(@NotNull ShutdownEvent event) {
         super.onShutdown(event);

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.experiments;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -6,6 +6,9 @@ import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Unused class for networking.
+ */
 public class Server {
 
     Socket socket;

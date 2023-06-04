@@ -8,20 +8,38 @@ import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.*;
 
+/**
+ * Bot that sends notifiactions.
+ */
 @Slf4j @RequiredArgsConstructor
 public class TwitchLiveBot {
 
+    /**
+     * Map of the channels with the users registered for their notification.
+     */
     private final Map<String, List<BotUserModel>> channelUsers = new HashMap<>();
+
+    /**
+     * Client of the bot.
+     */
     private TwitchClient twitchClient;
 
+    /**
+     * Name of the file with the users.
+     */
     private final String fileName;
 
+    /**
+     * Starts twitch bot and register event handlers.
+     * @see TwitchLiveBot#registerFeatures() Needs to be called to join bot to channels.
+     */
     public void startBot() {
         loadFile();
 
@@ -31,22 +49,24 @@ public class TwitchLiveBot {
 
         twitchClient = clientBuilder
                 .withDefaultEventHandler(SimpleEventHandler.class)
-                .withEnableHelix(true)
                 .withDefaultAuthToken(credential)
+                .withEnableHelix(true)
                 .withEnableChat(true)
                 .build();
 
         registerEvents();
     }
 
+    /**
+     * Registers supported events to the bot.
+     */
     private void registerEvents() {
         twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-            System.out.println("pog");
-            Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (live)");
+            sendMessage("(live event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
         });
 
         twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
-            Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (title)");
+            sendMessage("(title change event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
         });
 
         twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
@@ -55,18 +75,30 @@ public class TwitchLiveBot {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            Discord.sendMessage(new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase())), event.getChannel().getName() + " went live! (game)");
+            sendMessage("(game category change event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
         });
 
         twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
             if ((event.getMessage().contains("NEW TITLE!") || event.getMessage().contains("NEW GAME!") || event.getMessage().contains("has gone live")) && event.getMessageEvent().getUserName().equalsIgnoreCase("TitleChange_Bot")) {
-                List<BotUserModel> users = new ArrayList<>(channelUsers.get(event.getChannel().getName().toLowerCase()));
+                List<BotUserModel> users = channelUsers.get(event.getChannel().getName().toLowerCase());
                 users.removeIf(u -> !event.getMessage().toLowerCase().contains(u.getName().toLowerCase()));
-                Discord.sendMessage(users, event.getChannel().getName() + " went live! (live predict)");
+                sendMessage("(live predict)", event.getChannel().getName(), users);
             }
         });
     }
 
+    /**
+     * Requests Discord bot to send the message.
+     * @param eventType Identifier of the event for statistical purposes.
+     * @param channel Name of the channel that went live.
+     */
+    private void sendMessage(@NonNull String eventType, @NonNull String channel, @NonNull List<BotUserModel> users) {
+        Discord.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
+    }
+
+    /**
+     * Reloads users from file.
+     */
     public void loadFile() {
         File file = new File(fileName);
         try {
@@ -86,6 +118,13 @@ public class TwitchLiveBot {
         }
     }
 
+    /**
+     * Adds user to the user map and user file.
+     *
+     * @param channel Name of the channel that should be connected.
+     * @param name Name of the user that should be notified.
+     * @param discordID Discord ID of the user.
+     */
     public void addUser(String channel, String name, String discordID) {
         if (channelUsers.containsKey(channel)) {
             channelUsers.get(channel).add(new BotUserModel(name, discordID));
@@ -94,6 +133,9 @@ public class TwitchLiveBot {
         }
     }
 
+    /**
+     * Connects bot to the all required channels.
+     */
     public void registerFeatures() {
         twitchClient.getClientHelper().enableStreamEventListener(channelUsers.keySet());
         for (String channel : channelUsers.keySet()) {
@@ -103,6 +145,9 @@ public class TwitchLiveBot {
         }
     }
 
+    /**
+     * Destroys the bot.
+     */
     public void destroy(){
         twitchClient.close();
     }
