@@ -7,7 +7,11 @@ class TwitchExpandBotSpec extends BotTemplateSpec {
     private TwitchExpandBot bot
 
     def setup() {
-        bot = new TwitchExpandBot(null, null, fileName)
+        def liveBot = Mock(TwitchLiveBot) {
+            addUser(*_) >> null
+            registerFeatures() >> null
+        }
+        bot = new TwitchExpandBot(liveBot, null, fileName)
         bot.@twitchClient = Stub(TwitchClient)
     }
 
@@ -15,15 +19,11 @@ class TwitchExpandBotSpec extends BotTemplateSpec {
         given:
         createFile()
         String event = "set CHANNEL NAME DISCORD_ID"
-        TwitchLiveBot liveBot = Mock(TwitchLiveBot) {
-            addUser(*_) >> null
-            registerFeatures() >> null
-        }
         when:
-        bot.addUser(event, liveBot)
+        bot.addUser(event)
         then:
-        1 * liveBot.addUser(*_)
-        1 * liveBot.registerFeatures()
+        1 * bot.@twitchLiveBot.addUser(*_)
+        1 * bot.@twitchLiveBot.registerFeatures()
         Scanner scanner = new Scanner(file)
         scanner.next() == "CHANNEL,NAME,DISCORD_ID".toLowerCase()
         !scanner.hasNext()

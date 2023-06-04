@@ -5,6 +5,7 @@ import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileWriter;
@@ -13,27 +14,41 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
+/**
+ * Bot that handles user operations.
+ */
+@Slf4j @RequiredArgsConstructor
 public class TwitchExpandBot {
 
-    private final String channel;
-    private TwitchClient twitchClient = null;
-    private final String file;
+    /**
+     * Live bot onto which edits are applied.
+     */
     private final TwitchLiveBot twitchLiveBot;
 
-    public TwitchExpandBot(TwitchLiveBot twitchLiveBot, String channel, String file) {
-        this.twitchLiveBot = twitchLiveBot;
-        this.channel = channel;
-        this.file = file;
-    }
+    /**
+     * Channel name where bot is running.
+     */
+    private final String channel;
 
+    /**
+     * Name of the file with users.
+     */
+    private final String file;
+
+    /**
+     * Client of the bot.
+     */
+    private TwitchClient twitchClient = null;
+
+    /**
+     * Starts the bot.
+     */
     public void startBot() {
-        System.out.println("WTF");
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
         OAuth2Credential credential = new OAuth2Credential("zorpengurbot", "mgqjwj0paxya5h69ql6bajd1vz4gb1");
 
-        twitchClient = clientBuilder
+        this.twitchClient = clientBuilder
                 .withDefaultEventHandler(SimpleEventHandler.class)
                 .withEnableHelix(true)
                 .withDefaultAuthToken(credential)
@@ -41,35 +56,46 @@ public class TwitchExpandBot {
                 .withChatAccount(credential)
                 .build();
 
-        twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+        this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
             if (event.getUser().getName().equalsIgnoreCase("zorpengur") && event.getMessage().startsWith("set")) {
-                addUser(event.getMessage(), twitchLiveBot);
+                addUser(event.getMessage());
             }
         });
     }
 
-    public void addUser(String message, TwitchLiveBot twitchLiveBot){
+    /**
+     * Adds new user to the file and user map in TwitchLiveBot.
+     *
+     * @param message Message in format: CHANNEL NAME DISCORD_ID
+     */
+    public void addUser(String message){
         try {
-            FileWriter fileWriter = new FileWriter(file, true);
+            FileWriter fileWriter = new FileWriter(this.file, true);
             List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
             data.removeIf(string -> string.strip().equals(""));
             fileWriter.write(String.format("%s,%s,%s\n", data.get(1), data.get(2), data.get(3)));
             fileWriter.flush();
             fileWriter.close();
-            twitchLiveBot.addUser(data.get(1), data.get(2), data.get(3));
-            twitchLiveBot.registerFeatures();
-            twitchClient.getChat().sendMessage(channel, "Added!");
+            this.twitchLiveBot.addUser(data.get(1), data.get(2), data.get(3));
+            this.twitchLiveBot.registerFeatures();
+            this.twitchClient.getChat().sendMessage(this.channel, "Added!");
         } catch (IOException ex) {
             log.error("failed to add new user", ex);
         }
     }
 
+    /**
+     * Connects bot to the channel.
+     */
     public void registerFeatures() {
-        twitchClient.getClientHelper().enableStreamEventListener(channel);
-        twitchClient.getChat().joinChannel(channel);
+        this.twitchClient.getClientHelper().enableStreamEventListener(this.channel);
+        this.twitchClient.getChat().joinChannel(this.channel);
     }
 
+    /**
+     * Destroys the bot.
+     */
     public void destroy(){
-        twitchClient.close();
+        this.twitchClient.close();
     }
 }
