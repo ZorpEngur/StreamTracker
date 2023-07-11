@@ -1,4 +1,4 @@
-package org.example.experiments;
+package com.zorpengur.notification.experiments;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

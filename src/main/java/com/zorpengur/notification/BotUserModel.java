@@ -1,4 +1,4 @@
-package org.example;
+package com.zorpengur.notification;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

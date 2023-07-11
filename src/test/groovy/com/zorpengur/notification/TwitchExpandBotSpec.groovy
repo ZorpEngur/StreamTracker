@@ -1,4 +1,4 @@
-package org.example
+package com.zorpengur.notification
 
 import com.github.twitch4j.TwitchClient
 

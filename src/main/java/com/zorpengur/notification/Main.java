@@ -1,4 +1,4 @@
-package org.example;
+package com.zorpengur.notification;
 
 import lombok.extern.slf4j.Slf4j;
 
