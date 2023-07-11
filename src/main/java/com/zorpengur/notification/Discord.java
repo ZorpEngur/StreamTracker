@@ -1,4 +1,4 @@
-package org.example;
+package com.zorpengur.notification;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
