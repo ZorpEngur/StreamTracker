@@ -126,6 +126,7 @@ public class TwitchLiveBot {
      * @param discordID Discord ID of the user.
      */
     public void addUser(String channel, String name, String discordID) {
+        log.debug("Loaded user channel: {} name: {} discordID: {}", channel, name, discordID);
         if (channelUsers.containsKey(channel)) {
             channelUsers.get(channel).add(new BotUserModel(name, discordID));
         } else {

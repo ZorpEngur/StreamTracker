@@ -36,6 +36,6 @@ public class Main {
             }
         }
 
-        System.out.println("---------- Bot Running ----------");
+        log.debug("---------- Bot Running ----------");
     }
 }

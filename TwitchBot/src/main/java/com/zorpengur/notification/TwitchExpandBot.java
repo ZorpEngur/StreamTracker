@@ -79,6 +79,7 @@ public class TwitchExpandBot {
             this.twitchLiveBot.addUser(data.get(1), data.get(2), data.get(3));
             this.twitchLiveBot.registerFeatures();
             this.twitchClient.getChat().sendMessage(this.channel, "Added!");
+            log.debug("Added user {} {} {}", data.get(1), data.get(2), data.get(3));
         } catch (IOException ex) {
             log.error("failed to add new user", ex);
         }

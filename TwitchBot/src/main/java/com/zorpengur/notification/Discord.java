@@ -44,6 +44,7 @@ public class Discord extends ListenerAdapter {
      * @param message The message to be sent.
      */
     public static void sendMessage(List<BotUserModel> users, String message){
+        log.debug("Sending message to users {}, {}", users.stream().map(BotUserModel::getName), message);
         users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(5)));
         users.forEach(u -> u.setLastPing(LocalDateTime.now()));
         USERS = users;
