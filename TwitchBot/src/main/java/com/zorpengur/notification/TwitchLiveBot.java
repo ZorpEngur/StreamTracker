@@ -151,5 +151,6 @@ public class TwitchLiveBot {
      */
     public void destroy(){
         twitchClient.close();
+        Discord.destroy();
     }
 }

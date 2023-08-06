@@ -72,7 +72,7 @@ public class TwitchExpandBot {
         try {
             FileWriter fileWriter = new FileWriter(this.file, true);
             List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
-            data.removeIf(string -> string.strip().equals(""));
+            data.removeIf(String::isBlank);
             fileWriter.write(String.format("%s,%s,%s\n", data.get(1), data.get(2), data.get(3)));
             fileWriter.flush();
             fileWriter.close();
