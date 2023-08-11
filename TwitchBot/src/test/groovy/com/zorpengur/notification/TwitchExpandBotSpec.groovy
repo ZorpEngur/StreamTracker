@@ -6,7 +6,7 @@ class TwitchExpandBotSpec extends BotTemplateSpec {
 
     private TwitchExpandBot bot
 
-    def setup() {
+    void setup() {
         def liveBot = Mock(TwitchLiveBot) {
             addUser(*_) >> null
             registerFeatures() >> null
@@ -15,7 +15,7 @@ class TwitchExpandBotSpec extends BotTemplateSpec {
         bot.@twitchClient = Stub(TwitchClient)
     }
 
-    def "Expand bot add user test"() {
+    void "Expand bot add user test"() {
         given:
         createFile()
         String event = "set CHANNEL NAME DISCORD_ID"

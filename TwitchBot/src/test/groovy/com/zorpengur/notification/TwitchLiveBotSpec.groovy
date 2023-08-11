@@ -6,16 +6,16 @@ class TwitchLiveBotSpec extends BotTemplateSpec {
 
     private TwitchLiveBot bot
 
-    def setup() {
+    void setup() {
         bot = new TwitchLiveBot(super.fileName)
         bot.@twitchClient = Stub(TwitchClient)
     }
 
-    def cleanup() {
+    void cleanup() {
         deleteFile()
     }
 
-    def "Live bot add user test"() {
+    void "Live bot add user test"() {
         when:
         bot.addUser("channel", "name", "discordId")
         then:
@@ -25,7 +25,7 @@ class TwitchLiveBotSpec extends BotTemplateSpec {
         bot.@channelUsers.get("channel").get(0).discordID == "discordId"
     }
 
-    def "Live bot load no file"() {
+    void "Live bot load no file"() {
         when:
         bot.loadFile()
         then:
@@ -34,7 +34,7 @@ class TwitchLiveBotSpec extends BotTemplateSpec {
         scanner.close()
     }
 
-    def "Live bot load existion file"() {
+    void "Live bot load existion file"() {
         given:
         createFile()
         file.append("channel,name,discordId")
