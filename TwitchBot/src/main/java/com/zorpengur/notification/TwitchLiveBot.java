@@ -61,13 +61,11 @@ public class TwitchLiveBot {
      * Registers supported events to the bot.
      */
     private void registerEvents() {
-        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
-            sendMessage("(live event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
-        });
+        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event ->
+                sendMessage("(live event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase())));
 
-        twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
-            sendMessage("(title change event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
-        });
+        twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
+                sendMessage("(title change event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase())));
 
         twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
             try {
@@ -93,7 +91,7 @@ public class TwitchLiveBot {
      * @param channel Name of the channel that went live.
      */
     private void sendMessage(@NonNull String eventType, @NonNull String channel, @NonNull List<BotUserModel> users) {
-        Discord.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
+        DiscordBot.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
     }
 
     /**
@@ -151,6 +149,6 @@ public class TwitchLiveBot {
      */
     public void destroy(){
         twitchClient.close();
-        Discord.destroy();
+        DiscordBot.destroy();
     }
 }

@@ -9,12 +9,12 @@ class BotTemplateSpec extends Specification {
 
     protected String fileName = "target/test.txt"
 
-    def createFile() {
+    void createFile() {
         file = new File(fileName)
         file.createNewFile()
     }
 
-    def deleteFile() {
+    void deleteFile() {
         new File(fileName).delete()
     }
 }
