@@ -24,7 +24,7 @@ public class Main {
         TwitchExpandBot twitchExpandBot = null;
         while (true) {
             try {
-                twitchExpandBot = new TwitchExpandBot(twitchLiveBot, "zorpengur",  System.getenv().get("BOTFILE") + "streamNotifications.txt");
+                twitchExpandBot = new TwitchExpandBot(twitchLiveBot, "zorpengur", System.getenv().get("BOTFILE") + "streamNotifications.txt");
                 twitchExpandBot.startBot();
                 twitchExpandBot.registerFeatures();
                 break;

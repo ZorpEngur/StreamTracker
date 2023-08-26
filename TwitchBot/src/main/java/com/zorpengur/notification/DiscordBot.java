@@ -46,7 +46,13 @@ public class DiscordBot extends ListenerAdapter {
     /**
      * Flag if method to shut down bot was already called by different thread.
      */
+    @NonNull
     private static final AtomicBoolean DESTROY_LOCK = new AtomicBoolean(false);
+
+    /**
+     * Delay before another message can be sent to user.
+     */
+    private static final int REPEATED_MESSAGE_DELAY = 5;
 
     static {
         try {
@@ -60,14 +66,16 @@ public class DiscordBot extends ListenerAdapter {
     /**
      * Creates the bot that sends the message and shutdowns itself.
      *
-     * @param users List of users that should receive the message.
+     * @param users   List of users that should receive the message.
      * @param message The message to be sent.
      */
     public synchronized static void sendMessage(@NonNull List<BotUserModel> users, @NonNull String message) {
         log.debug("Sending message to users {}, {}", users.stream().map(BotUserModel::getName).toList(), message);
         LAST_USED = LocalDateTime.now();
-        users.removeIf(u -> u.getLastPing().isAfter(LocalDateTime.now().minusMinutes(5)));
-        users.forEach(u -> u.setLastPing(LocalDateTime.now()));
+        List<BotUserModel> filteredUsers = users.stream()
+                .filter(u -> u.getLastPing().plusMinutes(REPEATED_MESSAGE_DELAY).isBefore(LocalDateTime.now()))
+                .toList();
+        filteredUsers.forEach(u -> u.setLastPing(LocalDateTime.now()));
 
         try {
             if (JDA_INSTANCE == null || !JDA_INSTANCE.getStatus().equals(JDA.Status.CONNECTED)) {
@@ -86,16 +94,16 @@ public class DiscordBot extends ListenerAdapter {
             return;
         }
 
-        sendMessages(users, message);
+        sendMessages(filteredUsers, message);
     }
 
     /**
      * Sends message and ques shutdown of the bot.
      *
-     * @param users List of users whom the message will be sent.
+     * @param users   List of users whom the message will be sent.
      * @param message The message.
      */
-    private synchronized static void sendMessages(@NonNull List<BotUserModel> users, @NonNull String message) {
+    private static void sendMessages(@NonNull List<BotUserModel> users, @NonNull String message) {
         for (BotUserModel user : users) {
             JDA_INSTANCE.openPrivateChannelById(user.getDiscordID()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
         }
@@ -108,7 +116,7 @@ public class DiscordBot extends ListenerAdapter {
      * Method that will shut down the bot after {@link #SHUTDOWN_DELAY} from {@link #LAST_USED}.
      * NOTE: Lifetime of the bot can be extended if {@link #LAST_USED} is updated.
      */
-    private synchronized static void timedShutDown() {
+    private static void timedShutDown() {
         if (JDA_INSTANCE == null) {
             return;
         }
@@ -133,7 +141,7 @@ public class DiscordBot extends ListenerAdapter {
     /**
      * Destroys the bot.
      */
-    public synchronized static void destroy() {
+    public static void destroy() {
         if (JDA_INSTANCE != null) {
             JDA_INSTANCE.shutdown();
             JDA_INSTANCE = null;

@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 /**
  * Bot that handles user operations.
  */
-@Slf4j @RequiredArgsConstructor
+@Slf4j
+@RequiredArgsConstructor
 public class TwitchExpandBot {
 
     /**
@@ -68,7 +69,7 @@ public class TwitchExpandBot {
      *
      * @param message Message in format: CHANNEL NAME DISCORD_ID
      */
-    public void addUser(String message){
+    public void addUser(String message) {
         try {
             FileWriter fileWriter = new FileWriter(this.file, true);
             List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
@@ -96,7 +97,7 @@ public class TwitchExpandBot {
     /**
      * Destroys the bot.
      */
-    public void destroy(){
+    public void destroy() {
         this.twitchClient.close();
     }
 }
