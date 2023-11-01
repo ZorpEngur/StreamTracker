@@ -1,5 +1,6 @@
-package com.zorpengur.notification;
+package com.streamTracker.notification;
 
+import com.streamTracker.database.properties.PropertiesService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -22,7 +23,7 @@ public class StreamRecorder {
     /**
      * Directory where recordings will be saved.
      */
-    private static final File DIR = new File(Main.HOME, "VODs");
+    private static final File DIR = new File(PropertiesService.getInstance().getFilePath(), "VODs");
     /**
      * Date format for naming files.
      */
