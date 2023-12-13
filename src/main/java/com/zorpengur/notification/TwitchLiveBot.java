@@ -67,8 +67,10 @@ public class TwitchLiveBot {
      * Registers supported events to the bot.
      */
     private void registerEvents() {
-        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event ->
-                sendMessage("(live event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase())));
+        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+            sendMessage("(live event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase()));
+            StreamRecorder.record(event.getChannel().getName());
+        });
 
         twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
                 sendMessage("(title change event)", event.getChannel().getName(), channelUsers.get(event.getChannel().getName().toLowerCase())));
