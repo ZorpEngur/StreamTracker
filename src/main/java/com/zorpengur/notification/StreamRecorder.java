@@ -30,7 +30,7 @@ public class StreamRecorder {
     /**
      * CMD prefix depending on operating system.
      */
-    private static final String CMD_LINE = System.getProperty("os.name").toLowerCase().contains("windows") ? "cmd.exe /c" : "sh -c";
+    private static final String CMD_LINE = System.getProperty("os.name").toLowerCase().contains("windows") ? "cmd.exe /c" : "/bin/sh -c";
     /**
      * Pattern to get date format from file names.
      */
