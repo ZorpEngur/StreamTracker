@@ -69,7 +69,7 @@ public class StreamRecorder {
             i.lines().forEach(e -> {
                 log.debug("Stream link to recording: {}", e);
                 try {
-                    Runtime.getRuntime().exec(CMD_LINE + " ffmpeg -i " + e + " -preset veryfast " + fileName + " 2> " + logName).getInputStream();
+                    Runtime.getRuntime().exec(CMD_LINE + " ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName).getInputStream();
                     log.debug("Recording...");
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
