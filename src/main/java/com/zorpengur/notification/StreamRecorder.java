@@ -30,7 +30,7 @@ public class StreamRecorder {
     /**
      * CMD prefix depending on operating system.
      */
-    private static final String CMD_LINE = System.getProperty("os.name").toLowerCase().contains("windows") ? "cmd.exe /c" : "/bin/sh -c";
+    private static final String[] CMD_LINE = System.getProperty("os.name").toLowerCase().contains("windows") ? new String[]{"cmd.exe", "/c"} : new String[]{"/bin/sh", "-c"};
     /**
      * Pattern to get date format from file names.
      */
@@ -61,7 +61,7 @@ public class StreamRecorder {
         try {
             BufferedReader i = new BufferedReader(
                 new InputStreamReader(
-                    Runtime.getRuntime().exec(CMD_LINE + " streamlink https://www.twitch.tv/" + streamName + " best --stream-url --twitch-access-token-param KEY=5ouehqg1k6s9ohuchq40plojc2bqac")
+                    Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "streamlink https://www.twitch.tv/" + streamName + " best --stream-url"})
                         .getInputStream()
                 )
             );
@@ -69,7 +69,7 @@ public class StreamRecorder {
             i.lines().forEach(e -> {
                 log.debug("Stream link to recording: {}", e);
                 try {
-                    Runtime.getRuntime().exec(CMD_LINE + " ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName).getInputStream();
+                    Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName}).getInputStream();
                     log.debug("Recording...");
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
