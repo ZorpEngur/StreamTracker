@@ -1,7 +1,8 @@
-package com.zorpengur.notification;
+package com.streamTracker.notification;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
+import com.streamTracker.database.properties.PropertiesService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -41,7 +42,7 @@ public class DiscordBot extends ListenerAdapter {
      * Delay before bot will be shut down.
      */
     @NonNull
-    private static final TemporalAmount SHUTDOWN_DELAY = Duration.of(5, ChronoUnit.MINUTES);
+    private static final TemporalAmount SHUTDOWN_DELAY = Duration.of(10, ChronoUnit.MINUTES);
 
     /**
      * Flag if method to shut down bot was already called by different thread.
@@ -69,10 +70,10 @@ public class DiscordBot extends ListenerAdapter {
      * @param users   List of users that should receive the message.
      * @param message The message to be sent.
      */
-    public synchronized static void sendMessage(@NonNull List<BotUserModel> users, @NonNull String message) {
-        log.debug("Sending message to users {}, {}", users.stream().map(BotUserModel::getName).toList(), message);
+    public synchronized static void sendMessage(@NonNull List<StreamModel.UserModel> users, @NonNull String message) {
+        log.debug("Sending message to users {}, {}", users.stream().map(StreamModel.UserModel::getName).toList(), message);
         LAST_USED = LocalDateTime.now();
-        List<BotUserModel> filteredUsers = users.stream()
+        List<StreamModel.UserModel> filteredUsers = users.stream()
                 .filter(u -> u.getLastPing().plusMinutes(REPEATED_MESSAGE_DELAY).isBefore(LocalDateTime.now()))
                 .toList();
         filteredUsers.forEach(u -> u.setLastPing(LocalDateTime.now()));
@@ -83,7 +84,7 @@ public class DiscordBot extends ListenerAdapter {
                 if (JDA_INSTANCE != null) {
                     JDA_INSTANCE.shutdownNow();
                 }
-                JDA_INSTANCE = JDABuilder.createDefault("NzY0ODY5MDQxNjY3MTc4NTE3.GzuyDb.BbJd8wnRqN-fJ68NO26VNfktwlQboNEmfhiHKQ")
+                JDA_INSTANCE = JDABuilder.createDefault(PropertiesService.getInstance().getDiscordToken())
                         .enableCache(CacheFlag.VOICE_STATE)
                         .setStatus(OnlineStatus.OFFLINE)
                         .build();
@@ -103,9 +104,9 @@ public class DiscordBot extends ListenerAdapter {
      * @param users   List of users whom the message will be sent.
      * @param message The message.
      */
-    private static void sendMessages(@NonNull List<BotUserModel> users, @NonNull String message) {
-        for (BotUserModel user : users) {
-            JDA_INSTANCE.openPrivateChannelById(user.getDiscordID()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
+    private static void sendMessages(@NonNull List<StreamModel.UserModel> users, @NonNull String message) {
+        for (StreamModel.UserModel user : users) {
+            JDA_INSTANCE.openPrivateChannelById(user.getDiscordId()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
         }
         if (DESTROY_LOCK.compareAndSet(false, true)) {
             new Thread(DiscordBot::timedShutDown).start();
