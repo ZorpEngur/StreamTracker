@@ -26,10 +26,10 @@ public class DatabaseUserModel {
     /**
      * Flag if notification should be sent before stream goes live.
      */
-    private final boolean enableStreamPredict = false;
+    private boolean enableStreamPredict = false;
 
     /**
      * Flag if stream should be recorded.
      */
-    private final boolean recordStream = false;
+    private boolean recordStream = false;
 }

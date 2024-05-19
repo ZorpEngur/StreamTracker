@@ -14,14 +14,14 @@ class TwitchBotServiceSpec extends SpecBase {
         models.size() == 2
         for (def model : models) {
             if (model.getStreamName() == "S1") {
-                model.getUsers().size() == 1
-                model.getUsers().get(0).getDiscordId() == 453262634536816283
-                !model.getUsers().get(0).isEnableStreamPredict()
-                !model.isRecordStream()
+                assert model.getUsers().size() == 1
+                assert model.getUsers().get(0).getDiscordId() == 453262634536816283
+                assert !model.getUsers().get(0).isEnableStreamPredict()
+                assert !model.isRecordStream()
             } else {
-                model.getUsers().size() == 3
-                model.isRecordStream()
-                model.getUsers().any { it -> it.isEnableStreamPredict() }
+                assert model.getUsers().size() == 3
+                assert model.isRecordStream()
+                assert model.getUsers().any { it -> it.isEnableStreamPredict() }
             }
         }
     }
