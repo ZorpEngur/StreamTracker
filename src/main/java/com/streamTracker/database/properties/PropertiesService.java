@@ -5,6 +5,8 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.spockframework.util.Nullable;
 
+import java.time.Duration;
+
 /**
  * Database service for
  */
@@ -43,7 +45,7 @@ public class PropertiesService {
      */
     @NonNull
     public String getFilePath() {
-        return propertiesDAO.getFilePath();
+        return this.propertiesDAO.getFilePath();
     }
 
     /**
@@ -53,7 +55,7 @@ public class PropertiesService {
      */
     @NonNull
     public String getTwitchName() {
-        return propertiesDAO.getTwitchName();
+        return this.propertiesDAO.getTwitchName();
     }
 
     /**
@@ -63,7 +65,7 @@ public class PropertiesService {
      */
     @NonNull
     public String getTwitchToken() {
-        return propertiesDAO.getTwitchToken();
+        return this.propertiesDAO.getTwitchToken();
     }
 
     /**
@@ -73,7 +75,7 @@ public class PropertiesService {
      */
     @NonNull
     public String getDiscordToken() {
-        return propertiesDAO.getDiscordToken();
+        return this.propertiesDAO.getDiscordToken();
     }
 
     /**
@@ -83,6 +85,43 @@ public class PropertiesService {
      */
     @NonNull
     public String getManageChannel() {
-        return propertiesDAO.getManageChannel();
+        return this.propertiesDAO.getManageChannel();
+    }
+
+    /**
+     * Quality of vods.
+     *
+     * @return StreamLink formated quality of vod.
+     */
+    @NonNull
+    public String getVodResolution() {
+        return this.propertiesDAO.getVodResolution();
+    }
+
+    /**
+     * Delay in minutes before notification from same channel can be sent again.
+     *
+     * @return Time in minutes.
+     */
+    public int getMessageDelay() {
+        return this.propertiesDAO.getMessageDelay();
+    }
+
+    /**
+     * Minimum available space in GB to record new vod.
+     *
+     * @return Size in GB.
+     */
+    public int getSpaceThreshold() {
+        return this.propertiesDAO.getSpaceThreshold();
+    }
+
+    /**
+     * Duration before Discord bot is shutdown.
+     *
+     * @return Shutdown duration.
+     */
+    public Duration getDiscordShutdownDelay() {
+        return this.propertiesDAO.getDiscordShutdownDelay();
     }
 }

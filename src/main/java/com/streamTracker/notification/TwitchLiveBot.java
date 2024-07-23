@@ -59,7 +59,7 @@ public class TwitchLiveBot {
 
         OAuth2Credential credential = new OAuth2Credential(this.propertiesService.getTwitchName(), this.propertiesService.getTwitchToken());
 
-        twitchClient = clientBuilder
+        this.twitchClient = clientBuilder
             .withDefaultEventHandler(SimpleEventHandler.class)
             .withDefaultAuthToken(credential)
             .withEnableHelix(true)
@@ -73,8 +73,8 @@ public class TwitchLiveBot {
      * Loads all users for this bot.
      */
     public void loadUsers() {
-        streamModels = this.twitchBotService.getStreamerModels();
-        streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getName).toList()));
+        this.streamModels = this.twitchBotService.getStreamerModels();
+        this.streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getName).toList()));
         registerEvents();
         registerFeatures();
     }
@@ -83,7 +83,7 @@ public class TwitchLiveBot {
      * Registers supported events to the bot.
      */
     private void registerEvents() {
-        twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
+        this.twitchClient.getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
             sendMessage("(live event)", streamModel.getStreamName(), streamModel.getUsers());
             if (streamModel.isRecordStream()) {
@@ -91,14 +91,14 @@ public class TwitchLiveBot {
             }
         });
 
-        twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
+        this.twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
             sendMessage("(title change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers()));
 
-        twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
+        this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
             sendMessage("(game category change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers());
         });
 
-        twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
+        this.twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
             if ((event.getMessage().contains("NEW TITLE!") || event.getMessage().contains("NEW GAME!") || event.getMessage().contains("has gone live")) && event.getMessageEvent().getUserName().equalsIgnoreCase("TitleChange_Bot")) {
                 List<StreamModel.UserModel> users = getStreamModel(event.getChannel().getName()).getUsers()
                     .stream()
@@ -127,10 +127,11 @@ public class TwitchLiveBot {
      *
      * @param streamName Name of desired model.
      * @return Stream model or null.
+     * @throws RuntimeException If stream name wasn't found. Should never happen.
      */
     @NonNull
     private StreamModel getStreamModel(@NonNull String streamName) {
-        for (StreamModel stream : streamModels) {
+        for (StreamModel stream : this.streamModels) {
             if (stream.getStreamName().equalsIgnoreCase(streamName)) {
                 return stream;
             }
@@ -142,11 +143,11 @@ public class TwitchLiveBot {
      * Connects bot to the all required channels.
      */
     private void registerFeatures() {
-        List<String> streams = streamModels.stream().map(StreamModel::getStreamName).toList();
-        twitchClient.getClientHelper().enableStreamEventListener(streams);
+        List<String> streams = this.streamModels.stream().map(StreamModel::getStreamName).toList();
+        this.twitchClient.getClientHelper().enableStreamEventListener(streams);
         for (String stream : streams) {
-            if (!twitchClient.getChat().getChannels().contains(stream)) {
-                twitchClient.getChat().joinChannel(stream);
+            if (!this.twitchClient.getChat().getChannels().contains(stream)) {
+                this.twitchClient.getChat().joinChannel(stream);
             }
         }
     }
@@ -155,7 +156,7 @@ public class TwitchLiveBot {
      * Destroys the bot.
      */
     public void destroy() {
-        twitchClient.close();
+        this.twitchClient.close();
         DiscordBot.destroy();
     }
 }

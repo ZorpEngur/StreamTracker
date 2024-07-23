@@ -39,7 +39,7 @@ public class StreamRecorder {
     /**
      * Minimum of available space on disk before recording. (in GB)
      */
-    private static final int SPACE_THRESHOLD = 10;
+    private static final int SPACE_THRESHOLD = PropertiesService.getInstance().getSpaceThreshold();
 
     static {
         if (DIR.mkdirs()) {
@@ -61,10 +61,10 @@ public class StreamRecorder {
 
         try {
             BufferedReader i = new BufferedReader(
-                new InputStreamReader(
-                    Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "streamlink https://www.twitch.tv/" + streamName + " best --stream-url"})
-                        .getInputStream()
-                )
+                    new InputStreamReader(
+                            Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "streamlink https://www.twitch.tv/" + streamName + " " + PropertiesService.getInstance().getVodResolution() + " --stream-url"})
+                                    .getInputStream()
+                    )
             );
 
             i.lines().forEach(e -> {
@@ -92,15 +92,15 @@ public class StreamRecorder {
             while (usableSpace < SPACE_THRESHOLD) {
                 File[] i = DIR.listFiles();
                 Arrays.stream(i)
-                    .min(Comparator.comparing(e -> {
-                        Matcher matcher1 = PATTERN.matcher(e.getName());
-                        matcher1.find();
-                        return matcher1.group().replaceAll("[^0-9]", "");
-                    }))
-                    .map(e -> {
-                        log.warn("Insufficient space. File {} was deleted.", e.getName());
-                        return e.delete();
-                    });
+                        .min(Comparator.comparing(e -> {
+                            Matcher matcher1 = PATTERN.matcher(e.getName());
+                            matcher1.find();
+                            return matcher1.group().replaceAll("[^0-9]", "");
+                        }))
+                        .map(e -> {
+                            log.warn("Insufficient space. File {} was deleted.", e.getName());
+                            return e.delete();
+                        });
                 usableSpace = DIR.getUsableSpace() / (1024 * 1024 * 1024);
             }
         } catch (Exception e) {

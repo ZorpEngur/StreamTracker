@@ -3,6 +3,9 @@ package com.streamTracker.database
 import com.streamTracker.SpecBase
 import com.streamTracker.database.properties.PropertiesService
 
+import java.time.Duration
+import java.time.temporal.ChronoUnit
+
 class PropertiesServiceSpec extends SpecBase {
 
     void "Should get discord token"() {
@@ -28,5 +31,25 @@ class PropertiesServiceSpec extends SpecBase {
     void "Should get twitch token"() {
         expect:
         PropertiesService.getInstance().getTwitchToken() == "cxa8lcma6wi5r953qphqhmb4j9lzka"
+    }
+
+    void "Should get vod resolution"() {
+        expect:
+        PropertiesService.getInstance().getVodResolution() == "720p,480p,best"
+    }
+
+    void "Should get message delay"() {
+        expect:
+        PropertiesService.getInstance().getMessageDelay() == 1
+    }
+
+    void "Should get space threshold"() {
+        expect:
+        PropertiesService.getInstance().getSpaceThreshold() == 10
+    }
+
+    void "Should get Discord shutdown delay"() {
+        expect:
+        PropertiesService.getInstance().getDiscordShutdownDelay() == Duration.of(10, ChronoUnit.MINUTES)
     }
 }

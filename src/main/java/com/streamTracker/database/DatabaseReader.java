@@ -1,7 +1,7 @@
 package com.streamTracker.database;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.io.Resources;
-import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
@@ -16,6 +16,7 @@ import java.util.function.Function;
 /**
  * Provides connection to database for DAO classes.
  */
+@Slf4j
 public abstract class DatabaseReader<T> {
 
     /**
@@ -25,9 +26,13 @@ public abstract class DatabaseReader<T> {
 
     public DatabaseReader() {
         Properties properties = new Properties();
-        properties.setProperty("DB_URL", System.getenv().get("DB_URL"));
-        properties.setProperty("DB_USER", System.getenv().get("DB_USER"));
-        properties.setProperty("DB_PASSWORD", System.getenv().get("DB_PASSWORD"));
+        try {
+            properties.setProperty("DB_URL", System.getenv().get("DB_URL"));
+            properties.setProperty("DB_USER", System.getenv().get("DB_USER"));
+            properties.setProperty("DB_PASSWORD", System.getenv().get("DB_PASSWORD"));
+        } catch (NullPointerException e) {
+            log.warn("Database properties not set.", e);
+        }
         try {
             String resource = "mybatis-config.xml";
             InputStream inputStream;
@@ -46,7 +51,7 @@ public abstract class DatabaseReader<T> {
      * @return Result of the func.
      */
     public <R> R get(Function<T, R> func) {
-        try (SqlSession session = sqlSessionFactory.openSession()) {
+        try (SqlSession session = this.sqlSessionFactory.openSession()) {
             T mapper = session.getMapper((Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
             return func.apply(mapper);
         }
@@ -58,7 +63,7 @@ public abstract class DatabaseReader<T> {
      * @param func Method to be executed from mapper {@code T}.
      */
     public void insert(Consumer<T> func) {
-        try (SqlSession session = sqlSessionFactory.openSession()) {
+        try (SqlSession session = this.sqlSessionFactory.openSession()) {
             T mapper = session.getMapper((Class<T>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0]);
             func.accept(mapper);
             session.commit();
