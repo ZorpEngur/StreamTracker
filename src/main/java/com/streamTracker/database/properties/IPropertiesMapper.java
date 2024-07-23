@@ -18,4 +18,16 @@ interface IPropertiesMapper {
 
     @Select("SELECT property_value FROM stream_tracker.properties WHERE property_name = 'MANAGE_CHANNEL_NAME'")
     String getManageChannel();
+
+    @Select("SELECT property_value FROM stream_tracker.properties WHERE property_name = 'VOD_RESOLUTION'")
+    String getVodResolution();
+
+    @Select("SELECT property_value FROM stream_tracker.properties WHERE property_name = 'MESSAGE_DELAY'")
+    String getMessageDelay();
+
+    @Select("SELECT property_value FROM stream_tracker.properties WHERE property_name = 'SPACE_THRESHOLD'")
+    String getSpaceThreshold();
+
+    @Select("SELECT property_value FROM stream_tracker.properties WHERE property_name = 'DISCORD_SHUTDOWN_DELAY'")
+    String getDiscordShutdownDelay();
 }

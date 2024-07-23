@@ -42,7 +42,7 @@ public class DiscordBot extends ListenerAdapter {
      * Delay before bot will be shut down.
      */
     @NonNull
-    private static final TemporalAmount SHUTDOWN_DELAY = Duration.of(10, ChronoUnit.MINUTES);
+    private static final TemporalAmount SHUTDOWN_DELAY = PropertiesService.getInstance().getDiscordShutdownDelay();
 
     /**
      * Flag if method to shut down bot was already called by different thread.
@@ -53,7 +53,7 @@ public class DiscordBot extends ListenerAdapter {
     /**
      * Delay before another message can be sent to user.
      */
-    private static final int REPEATED_MESSAGE_DELAY = 5;
+    private static final int REPEATED_MESSAGE_DELAY = PropertiesService.getInstance().getMessageDelay();
 
     static {
         try {

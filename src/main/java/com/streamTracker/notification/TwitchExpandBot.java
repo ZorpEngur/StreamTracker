@@ -54,7 +54,7 @@ public class TwitchExpandBot {
 
     public TwitchExpandBot(@NonNull TwitchLiveBot twitchLiveBot) {
         this.twitchLiveBot = twitchLiveBot;
-        this.channel = propertiesService.getManageChannel();
+        this.channel = this.propertiesService.getManageChannel();
     }
 
     /**
@@ -66,12 +66,12 @@ public class TwitchExpandBot {
         OAuth2Credential credential = new OAuth2Credential(this.propertiesService.getTwitchName(), this.propertiesService.getTwitchToken());
 
         this.twitchClient = clientBuilder
-            .withDefaultEventHandler(SimpleEventHandler.class)
-            .withEnableHelix(true)
-            .withDefaultAuthToken(credential)
-            .withEnableChat(true)
-            .withChatAccount(credential)
-            .build();
+                .withDefaultEventHandler(SimpleEventHandler.class)
+                .withEnableHelix(true)
+                .withDefaultAuthToken(credential)
+                .withEnableChat(true)
+                .withChatAccount(credential)
+                .build();
 
         this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
             if (event.getUser().getName().equalsIgnoreCase(this.channel) && event.getMessage().startsWith("set")) {
@@ -91,12 +91,12 @@ public class TwitchExpandBot {
         List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
         data.removeIf(String::isBlank);
         UserRegistrationModel newUser = UserRegistrationModel.builder()
-            .streamName(data.get(1))
-            .userName(data.get(2))
-            .discordId(Long.parseLong(data.get(3)))
-            .streamPrediction(parseBoolean(data.get(4)))
-            .recordStream(parseBoolean(data.get(5)))
-            .build();
+                .streamName(data.get(1))
+                .userName(data.get(2))
+                .discordId(Long.parseLong(data.get(3)))
+                .streamPrediction(parseBoolean(data.get(4)))
+                .recordStream(parseBoolean(data.get(5)))
+                .build();
         this.twitchBotService.addUser(newUser);
         this.twitchLiveBot.loadUsers();
         this.twitchClient.getChat().sendMessage(this.channel, "Added!");
