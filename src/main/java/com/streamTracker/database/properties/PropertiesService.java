@@ -3,7 +3,7 @@ package com.streamTracker.database.properties;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.spockframework.util.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 

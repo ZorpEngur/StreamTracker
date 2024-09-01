@@ -6,7 +6,7 @@ import com.streamTracker.database.model.DatabaseUserModel;
 import com.streamTracker.database.model.UserRegistrationModel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.spockframework.util.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 

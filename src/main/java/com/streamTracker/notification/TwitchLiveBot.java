@@ -13,7 +13,7 @@ import com.streamTracker.database.twitch.TwitchBotService;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.spockframework.util.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -27,8 +27,8 @@ public class TwitchLiveBot {
     /**
      * List of registered streams.
      */
-    @Nullable
-    private List<StreamModel> streamModels;
+    @NonNull
+    private List<StreamModel> streamModels = List.of();
 
     /**
      * Client of the bot.

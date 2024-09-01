@@ -10,7 +10,7 @@ import com.streamTracker.database.properties.PropertiesService;
 import com.streamTracker.database.twitch.TwitchBotService;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.spockframework.util.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;

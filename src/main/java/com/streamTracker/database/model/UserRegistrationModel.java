@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.spockframework.util.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for data passed by user when making registration with bot.
