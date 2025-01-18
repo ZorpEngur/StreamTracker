@@ -8,10 +8,10 @@ import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
-import com.streamTracker.database.properties.PropertiesService;
+import com.streamTracker.ApplicationProperties;
 import com.streamTracker.database.twitch.TwitchBotService;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,7 +21,7 @@ import java.util.List;
  * Bot that sends notifications.
  */
 @Slf4j
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class TwitchLiveBot {
 
     /**
@@ -40,24 +40,37 @@ public class TwitchLiveBot {
      * Database service for twitch.
      */
     @NonNull
-    private final TwitchBotService twitchBotService = TwitchBotService.getInstance();
+    private final TwitchBotService twitchBotService;
 
     /**
-     * Database service for properties.
+     * Bot for sending discord messages.
      */
     @NonNull
-    private final PropertiesService propertiesService = PropertiesService.getInstance();
+    private final DiscordBot discordBot;
+
+    /**
+     * Properties for the application.
+     */
+    @NonNull
+    private final ApplicationProperties properties;
+
+    /**
+     * Recorder service for the stream.
+     */
+    @NonNull
+    private final StreamRecorder streamRecorder;
 
     /**
      * Starts twitch bot and register event handlers.
      *
      * @see TwitchLiveBot#registerFeatures() Needs to be called to join bot to channels.
      */
-    public void startBot() {
+    @NonNull
+    public TwitchLiveBot startBot() {
 
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
-        OAuth2Credential credential = new OAuth2Credential(this.propertiesService.getTwitchName(), this.propertiesService.getTwitchToken());
+        OAuth2Credential credential = new OAuth2Credential(this.properties.getTwitchName(), this.properties.getTwitchToken());
 
         this.twitchClient = clientBuilder
             .withDefaultEventHandler(SimpleEventHandler.class)
@@ -67,6 +80,7 @@ public class TwitchLiveBot {
             .build();
 
         loadUsers();
+        return this;
     }
 
     /**
@@ -87,7 +101,7 @@ public class TwitchLiveBot {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
             sendMessage("(live event)", streamModel.getStreamName(), streamModel.getUsers());
             if (streamModel.isRecordStream()) {
-                StreamRecorder.record(streamModel.getStreamName());
+                this.streamRecorder.record(streamModel.getStreamName());
             }
         });
 
@@ -118,7 +132,7 @@ public class TwitchLiveBot {
      */
     private void sendMessage(@NonNull String eventType, @NonNull String channel, @NonNull List<StreamModel.UserModel> users) {
         log.trace("Send message called with event {} for channel {}, notifying users {}", eventType, channel, users.stream().map(StreamModel.UserModel::getName).toList());
-        DiscordBot.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
+        this.discordBot.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
     }
 
     /**
@@ -156,7 +170,9 @@ public class TwitchLiveBot {
      * Destroys the bot.
      */
     public void destroy() {
-        this.twitchClient.close();
-        DiscordBot.destroy();
+        if (this.twitchClient != null) {
+            this.twitchClient.close();
+        }
+        this.discordBot.destroy();
     }
 }

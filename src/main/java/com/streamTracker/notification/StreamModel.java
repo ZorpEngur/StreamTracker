@@ -58,7 +58,6 @@ public class StreamModel {
         /**
          * Discord ID of the user used for sending notifications.
          */
-        @NonNull
         private final long discordId;
 
         /**

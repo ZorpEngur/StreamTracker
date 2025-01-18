@@ -2,13 +2,22 @@ package com.streamTracker.database
 
 import com.streamTracker.SpecBase
 import com.streamTracker.database.model.UserRegistrationModel
+import com.streamTracker.database.twitch.TwitchBotDAO
 import com.streamTracker.database.twitch.TwitchBotService
+import spock.lang.Shared
 
 class TwitchBotServiceSpec extends SpecBase {
 
+    @Shared
+    TwitchBotService twitchBotService
+
+    def setupSpec() {
+        this.twitchBotService = new TwitchBotService(new TwitchBotDAO(this.sessionFactory))
+    }
+
     void "Should get streamer models from database"() {
         when:
-        def models = TwitchBotService.getInstance().getStreamerModels()
+        def models = this.twitchBotService.getStreamerModels()
 
         then:
         models.size() == 2
@@ -35,10 +44,10 @@ class TwitchBotServiceSpec extends SpecBase {
                 .build()
 
         when:
-        TwitchBotService.getInstance().addUser(user)
+        this.twitchBotService.addUser(user)
 
         then:
-        def models = TwitchBotService.getInstance().getStreamerModels()
+        def models = this.twitchBotService.getStreamerModels()
         def model = models.findAll { it -> it.getStreamName() == streamName }.get(0)
         model.getUsers().any { it -> it.getName() == "Name" && it.getDiscordId() == discordId }
 
@@ -55,14 +64,14 @@ class TwitchBotServiceSpec extends SpecBase {
                 .discordId(123456)
                 .userName("Name")
                 .build()
-        def originalSize = TwitchBotService.getInstance().getStreamerModels().get(0).getUsers().size()
+        def originalSize = this.twitchBotService.getStreamerModels().get(0).getUsers().size()
 
         when:
-        TwitchBotService.getInstance().addUser(user)
-        TwitchBotService.getInstance().addUser(user)
+        this.twitchBotService.addUser(user)
+        this.twitchBotService.addUser(user)
 
         then:
-        TwitchBotService.getInstance().getStreamerModels().get(0).getUsers().size() == originalSize + 1
+        this.twitchBotService.getStreamerModels().get(0).getUsers().size() == originalSize + 1
     }
 
     void "Should create new stream model"() {
@@ -72,14 +81,14 @@ class TwitchBotServiceSpec extends SpecBase {
                 .discordId(123456)
                 .userName("Name")
                 .build()
-        def originalSize = TwitchBotService.getInstance().getStreamerModels().size()
+        def originalSize = this.twitchBotService.getStreamerModels().size()
 
         when:
-        TwitchBotService.getInstance().addUser(user)
+        this.twitchBotService.addUser(user)
 
         then:
-        TwitchBotService.getInstance().getStreamerModels().size() == originalSize + 1
-        def model = TwitchBotService.getInstance().getStreamerModels().findAll {it -> it.getStreamName() == "S3"}.get(0)
+        this.twitchBotService.getStreamerModels().size() == originalSize + 1
+        def model = this.twitchBotService.getStreamerModels().findAll {it -> it.getStreamName() == "S3"}.get(0)
         model.getUsers().size() == 1
         model.getUsers().get(0).getName() == "Name"
     }

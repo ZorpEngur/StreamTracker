@@ -5,10 +5,11 @@ import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import com.streamTracker.ApplicationProperties;
 import com.streamTracker.database.model.UserRegistrationModel;
-import com.streamTracker.database.properties.PropertiesService;
 import com.streamTracker.database.twitch.TwitchBotService;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  * Bot that handles user operations.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TwitchExpandBot {
 
     /**
@@ -29,41 +31,31 @@ public class TwitchExpandBot {
     private final TwitchLiveBot twitchLiveBot;
 
     /**
-     * Channel name where bot is running.
-     */
-    @NonNull
-    private final String channel;
-
-    /**
      * Client of the bot.
      */
     @Nullable
-    private TwitchClient twitchClient = null;
+    private TwitchClient twitchClient;
 
     /**
      * Database service for twitch.
      */
     @NonNull
-    private final TwitchBotService twitchBotService = TwitchBotService.getInstance();
+    private final TwitchBotService twitchBotService;
 
     /**
-     * Database service for properties.
+     * Properties for the application.
      */
     @NonNull
-    private final PropertiesService propertiesService = PropertiesService.getInstance();
-
-    public TwitchExpandBot(@NonNull TwitchLiveBot twitchLiveBot) {
-        this.twitchLiveBot = twitchLiveBot;
-        this.channel = this.propertiesService.getManageChannel();
-    }
+    private final ApplicationProperties properties;
 
     /**
      * Starts the bot.
      */
-    public void startBot() {
+    @NonNull
+    public TwitchExpandBot startBot() {
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
-        OAuth2Credential credential = new OAuth2Credential(this.propertiesService.getTwitchName(), this.propertiesService.getTwitchToken());
+        OAuth2Credential credential = new OAuth2Credential(this.properties.getTwitchName(), this.properties.getTwitchToken());
 
         this.twitchClient = clientBuilder
                 .withDefaultEventHandler(SimpleEventHandler.class)
@@ -74,12 +66,13 @@ public class TwitchExpandBot {
                 .build();
 
         this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-            if (event.getUser().getName().equalsIgnoreCase(this.channel) && event.getMessage().startsWith("set")) {
+            if (event.getUser().getName().equalsIgnoreCase(this.properties.getManageChannel()) && event.getMessage().startsWith("set")) {
                 addUser(event.getMessage());
             }
         });
 
         registerFeatures();
+        return this;
     }
 
     /**
@@ -99,7 +92,7 @@ public class TwitchExpandBot {
                 .build();
         this.twitchBotService.addUser(newUser);
         this.twitchLiveBot.loadUsers();
-        this.twitchClient.getChat().sendMessage(this.channel, "Added!");
+        this.twitchClient.getChat().sendMessage(this.properties.getManageChannel(), "Added!");
         log.debug("Added user {}", data);
     }
 
@@ -111,14 +104,16 @@ public class TwitchExpandBot {
      * Connects bot to the channel.
      */
     private void registerFeatures() {
-        this.twitchClient.getClientHelper().enableStreamEventListener(this.channel);
-        this.twitchClient.getChat().joinChannel(this.channel);
+        this.twitchClient.getClientHelper().enableStreamEventListener(this.properties.getManageChannel());
+        this.twitchClient.getChat().joinChannel(this.properties.getManageChannel());
     }
 
     /**
      * Destroys the bot.
      */
     public void destroy() {
-        this.twitchClient.close();
+        if (this.twitchClient != null) {
+            this.twitchClient.close();
+        }
     }
 }

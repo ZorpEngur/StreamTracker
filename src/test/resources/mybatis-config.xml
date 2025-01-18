@@ -17,6 +17,5 @@
 
     <mappers>
         <mapper class="com.streamTracker.database.twitch.ITwitchBotMapper"/>
-        <mapper class="com.streamTracker.database.properties.IPropertiesMapper"/>
     </mappers>
 </configuration>
