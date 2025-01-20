@@ -1,10 +1,15 @@
 package com.streamTracker
 
+import org.apache.ibatis.io.Resources
+import org.apache.ibatis.session.SqlSessionFactory
+import org.apache.ibatis.session.SqlSessionFactoryBuilder
 import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import spock.lang.Specification
 
 class SpecBase extends Specification {
+
+    SqlSessionFactory sessionFactory
 
     PostgreSQLContainer postgres
 
@@ -19,6 +24,8 @@ class SpecBase extends Specification {
         this.postgres.withDatabaseName("test")
         this.postgres.setPortBindings(List.of("9999:5432"))
         this.postgres.start()
+
+        this.sessionFactory = new SqlSessionFactoryBuilder().build(Resources.getResourceAsStream("mybatis-config.xml"))
     }
 
     def setup() {

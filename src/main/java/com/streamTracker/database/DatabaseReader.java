@@ -1,47 +1,25 @@
 package com.streamTracker.database;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.io.Resources;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
-import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
  * Provides connection to database for DAO classes.
  */
-@Slf4j
+@AllArgsConstructor
 public abstract class DatabaseReader<T> {
 
     /**
      * Session factory connected to database.
      */
+    @NonNull
     public SqlSessionFactory sqlSessionFactory;
-
-    public DatabaseReader() {
-        Properties properties = new Properties();
-        try {
-            properties.setProperty("DB_URL", System.getenv().get("DB_URL"));
-            properties.setProperty("DB_USER", System.getenv().get("DB_USER"));
-            properties.setProperty("DB_PASSWORD", System.getenv().get("DB_PASSWORD"));
-        } catch (NullPointerException e) {
-            log.warn("Database properties not set.", e);
-        }
-        try {
-            String resource = "mybatis-config.xml";
-            InputStream inputStream;
-            inputStream = Resources.getResourceAsStream(resource);
-            this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream, properties);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Executes get method on database and returns the result.

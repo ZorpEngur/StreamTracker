@@ -11,10 +11,9 @@ import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 
-import java.math.BigInteger;
 import java.util.List;
 
-interface ITwitchBotMapper {
+public interface ITwitchBotMapper {
 
     @Select("SELECT EXISTS(SELECT 1 FROM stream_tracker.discord_users WHERE discord_id=#{discordId})")
     boolean userExist(long discordId);

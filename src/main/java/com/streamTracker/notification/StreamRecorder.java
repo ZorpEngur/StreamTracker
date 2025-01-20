@@ -1,6 +1,7 @@
 package com.streamTracker.notification;
 
-import com.streamTracker.database.properties.PropertiesService;
+import com.streamTracker.ApplicationProperties;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -20,29 +21,41 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class StreamRecorder {
+
     /**
      * Directory where recordings will be saved.
      */
-    private static final File DIR = new File(PropertiesService.getInstance().getFilePath(), "VODs");
+    @NonNull
+    private final File dir;
+
     /**
      * Date format for naming files.
      */
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd-HHmmss");
+    @NonNull
+    private final DateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-HHmmss");
+
     /**
      * CMD prefix depending on operating system.
      */
-    private static final String[] CMD_LINE = System.getProperty("os.name").toLowerCase().contains("windows") ? new String[]{"cmd.exe", "/c"} : new String[]{"/bin/sh", "-c"};
+    @NonNull
+    private final String[] cmdLine = System.getProperty("os.name").toLowerCase().contains("windows") ? new String[]{"cmd.exe", "/c"} : new String[]{"/bin/sh", "-c"};
+
     /**
      * Pattern to get date format from file names.
      */
-    private static final Pattern PATTERN = Pattern.compile("-\\d+-\\d+\\.");
-    /**
-     * Minimum of available space on disk before recording. (in GB)
-     */
-    private static final int SPACE_THRESHOLD = PropertiesService.getInstance().getSpaceThreshold();
+    @NonNull
+    private final Pattern pattern = Pattern.compile("-\\d+-\\d+\\.");
 
-    static {
-        if (DIR.mkdirs()) {
+    /**
+     * Properties of the application.
+     */
+    @NonNull
+    private final ApplicationProperties properties;
+
+    public StreamRecorder(@NonNull ApplicationProperties properties) {
+        this.properties = properties;
+        this.dir = new File(properties.getFilePath(), "VODs");
+        if (dir.mkdirs()) {
             log.debug("Directory initialize.");
         }
     }
@@ -52,17 +65,17 @@ public class StreamRecorder {
      *
      * @param streamName Name of twitch stream to record.
      */
-    public static void record(String streamName) {
+    public void record(@NonNull String streamName) {
         log.debug("Recording initialization. {}", streamName);
         makeSpace();
 
-        String fileName = DIR.getAbsolutePath() + "/VOD_" + streamName + "-" + DATE_FORMAT.format(new Date()) + ".mkv";
-        String logName = DIR.getAbsolutePath() + "/LOG_" + streamName + "-" + DATE_FORMAT.format(new Date()) + ".txt";
+        String fileName = dir.getAbsolutePath() + "/VOD_" + streamName + "-" + dateFormat.format(new Date()) + ".mkv";
+        String logName = dir.getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
 
         try {
             BufferedReader i = new BufferedReader(
                     new InputStreamReader(
-                            Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "streamlink https://www.twitch.tv/" + streamName + " " + PropertiesService.getInstance().getVodResolution() + " --stream-url"})
+                            Runtime.getRuntime().exec(new String[]{cmdLine[0], cmdLine[1], "streamlink https://www.twitch.tv/" + streamName + " " + this.properties.getVodResolution() + " --stream-url"})
                                     .getInputStream()
                     )
             );
@@ -70,7 +83,7 @@ public class StreamRecorder {
             i.lines().forEach(e -> {
                 log.debug("Stream link to recording: {}", e);
                 try {
-                    Runtime.getRuntime().exec(new String[]{CMD_LINE[0], CMD_LINE[1], "ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName}).getInputStream();
+                    Runtime.getRuntime().exec(new String[]{cmdLine[0], cmdLine[1], "ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName}).getInputStream();
                     log.debug("Recording...");
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
@@ -82,18 +95,18 @@ public class StreamRecorder {
     }
 
     /**
-     * Finds if there is enough space on disk based on {@link #SPACE_THRESHOLD}.
+     * Finds if there is enough space on disk based on {@link ApplicationProperties#getSpaceThreshold()}.
      * If not, removes oldest recordings until enough available space.
      */
-    private static void makeSpace() {
-        long usableSpace = DIR.getUsableSpace() / (1024 * 1024 * 1024);
+    private void makeSpace() {
+        long usableSpace = dir.getUsableSpace() / (1024 * 1024 * 1024);
         log.debug("Usable space is {} GB", usableSpace);
         try {
-            while (usableSpace < SPACE_THRESHOLD) {
-                File[] i = DIR.listFiles();
+            while (usableSpace < properties.getSpaceThreshold()) {
+                File[] i = dir.listFiles();
                 Arrays.stream(i)
                         .min(Comparator.comparing(e -> {
-                            Matcher matcher1 = PATTERN.matcher(e.getName());
+                            Matcher matcher1 = pattern.matcher(e.getName());
                             matcher1.find();
                             return matcher1.group().replaceAll("[^0-9]", "");
                         }))
@@ -101,7 +114,7 @@ public class StreamRecorder {
                             log.warn("Insufficient space. File {} was deleted.", e.getName());
                             return e.delete();
                         });
-                usableSpace = DIR.getUsableSpace() / (1024 * 1024 * 1024);
+                usableSpace = dir.getUsableSpace() / (1024 * 1024 * 1024);
             }
         } catch (Exception e) {
             log.error("Space check or file deletion failed.", e);

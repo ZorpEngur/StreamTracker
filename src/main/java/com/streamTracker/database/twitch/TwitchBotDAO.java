@@ -4,8 +4,8 @@ import com.streamTracker.database.DatabaseReader;
 import com.streamTracker.database.model.DatabaseStreamModel;
 import com.streamTracker.database.model.DatabaseUserModel;
 import com.streamTracker.database.model.UserRegistrationModel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -13,8 +13,11 @@ import java.util.List;
 /**
  * Class containing database operations for twitch bots.
  */
-@NoArgsConstructor
-class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
+public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
+
+    public TwitchBotDAO(@NonNull SqlSessionFactory sqlSessionFactory) {
+        super(sqlSessionFactory);
+    }
 
     /**
      * Checks whether user is already saved in database.

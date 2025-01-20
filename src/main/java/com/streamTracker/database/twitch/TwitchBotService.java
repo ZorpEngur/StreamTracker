@@ -1,12 +1,10 @@
 package com.streamTracker.database.twitch;
 
 import com.streamTracker.database.model.DatabaseStreamModel;
-import com.streamTracker.notification.StreamModel;
 import com.streamTracker.database.model.UserRegistrationModel;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
+import com.streamTracker.notification.StreamModel;
 import lombok.NonNull;
-import org.jetbrains.annotations.Nullable;
+import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,33 +12,14 @@ import java.util.List;
 /**
  * Database service for twitch bots.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class TwitchBotService {
-
-    /**
-     * Only instance of this service.
-     */
-    @Nullable
-    private static TwitchBotService singleton;
 
     /**
      * Database access for twitch bot operations.
      */
     @NonNull
-    private final TwitchBotDAO twitchBotDAO = new TwitchBotDAO();
-
-    /**
-     * Method for retrieving instance of this class.
-     *
-     * @return Singleton of this method.
-     */
-    @NonNull
-    public static synchronized TwitchBotService getInstance() {
-        if (singleton == null) {
-            singleton = new TwitchBotService();
-        }
-        return singleton;
-    }
+    private final TwitchBotDAO twitchBotDAO;
 
     /**
      * Loads all streamers from database.
