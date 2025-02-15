@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+    workflow_run:
+        workflows: ["Maven"]
+        branches: [ main ]
+        types:
+            - completed
+
+jobs:
+    deploy_qa:
+        name: Deploy QA
+        runs-on: self-hosted
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+        steps:
+            -   uses: actions/checkout@v4
+
+            -   name: Download Artifact
+                uses: actions/download-artifact@v4
+                with:
+                    name: jar-artifact
+                    path: tmp
+
+#            -   name: Stop the service
+#                run: |
+#                    # Add commands to stop your service here
+#                    # Example:
+#                    # sudo systemctl stop your-service-name
+#                    echo "Stopping the service..."
+
+            -   name: Copy Artifact
+                run: scp tmp/TwitchBot.jar ${{ vars.QA_PATH }}:~/Desktop/TwitchBotTest.jar
+
+#            -   name: Start the service
+#                run: |
+#                    # Add commands to start your service here
+#                    # Example:
+#                    # sudo systemctl start your-service-name
+#                    echo "Starting the service..."
