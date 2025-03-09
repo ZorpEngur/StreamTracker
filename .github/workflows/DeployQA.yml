@@ -25,7 +25,7 @@ jobs:
                     branch: main
 
             -   name: Stop the service
-                run: ssh ${{ vars.QA_PATH }} "kill \$(pgrep java)"
+                run: ssh ${{ vars.QA_PATH }} "sudo kill \$(pgrep java)"
                 continue-on-error: true
 
             -   name: Remove old jar
