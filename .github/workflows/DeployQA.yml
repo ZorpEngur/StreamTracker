@@ -23,6 +23,7 @@ jobs:
                     path: tmp
                     workflow: Maven
                     branch: main
+                    search_artifacts: true
                     github_token: ${{ secrets.GITHUB_TOKEN }}
 
             -   name: Stop the service
