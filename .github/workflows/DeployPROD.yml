@@ -20,7 +20,7 @@ jobs:
                     path: tmp
                     workflow: Maven
                     branch: main
-                    github-token: ${{ secrets.GITHUB_TOKEN }}
+                    github_token: ${{ secrets.GITHUB_TOKEN }}
 
             -   name: Stop the service
                 run: ssh ${{ vars.PROD_PATH }} "kill \$(pgrep java)"
