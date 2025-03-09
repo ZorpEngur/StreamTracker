@@ -30,6 +30,7 @@ jobs:
 
             -   name: Remove old jar
                 run: ssh ${{ vars.QA_PATH }} "rm ~/Desktop/TwitchBot.jar"
+                continue-on-error: true
 
             -   name: Copy Artifact
                 run: scp tmp/TwitchBot.jar ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar

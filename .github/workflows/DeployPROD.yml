@@ -7,7 +7,6 @@ jobs:
     deploy_prod:
         name: Deploy PROD
         runs-on: self-hosted
-        needs: deploy_qa
         if: github.ref == 'refs/heads/main'
 
         steps:
@@ -27,6 +26,7 @@ jobs:
 
             -   name: Remove old jar
                 run: ssh ${{ vars.PROD_PATH }} "rm ~/Desktop/TwitchBot.jar"
+                continue-on-error: true
 
             -   name: Copy Artifact
                 run: scp tmp/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
