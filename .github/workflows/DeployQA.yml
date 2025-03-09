@@ -23,8 +23,6 @@ jobs:
                     path: tmp
                     workflow: Maven.yml
                     branch: main
-                    search_artifacts: true
-                    github_token: ${{ secrets.GITHUB_TOKEN }}
 
             -   name: Stop the service
                 run: ssh ${{ vars.QA_PATH }} "kill \$(pgrep java)"
