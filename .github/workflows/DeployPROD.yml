@@ -18,6 +18,7 @@ jobs:
                 with:
                     name: jar-artifact
                     path: tmp
+                    workflow: Maven.yml
                     branch: main
                     search_artifacts: true
                     github_token: ${{ secrets.GITHUB_TOKEN }}
