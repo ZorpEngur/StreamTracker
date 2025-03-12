@@ -1,0 +1,21 @@
+name: Build Job
+runs:
+    using: composite
+    steps:
+        -   name: Set up JDK 17
+            uses: actions/setup-java@v3
+            with:
+                java-version: '17'
+                distribution: 'temurin'
+                cache: maven
+
+        -   name: Build Maven
+            shell: bash
+            run: mvn -DskipTests clean install
+
+        -   name: Upload Artifact
+            uses: actions/upload-artifact@v4
+            with:
+                name: jar-artifact
+                path: target/TwitchBot.jar
+                retention-days: 3
