@@ -7,29 +7,17 @@ jobs:
     deploy_prod:
         name: Deploy PROD
         runs-on: self-hosted
-        if: github.ref == 'refs/heads/main'
 
         steps:
-            -   uses: actions/checkout@v4
-
-            -   name: Download Artifact
-                uses: dawidd6/action-download-artifact@v9
-                with:
-                    name: jar-artifact
-                    path: tmp
-                    workflow: Maven.yml
-                    branch: main
-
             -   name: Stop the service
                 run: ssh ${{ vars.PROD_PATH }} "sudo kill \$(pgrep java)"
                 continue-on-error: true
 
             -   name: Remove old jar
-                run: ssh ${{ vars.PROD_PATH }} "rm ~/Desktop/TwitchBot.jar"
-                continue-on-error: true
+                run: ssh ${{ vars.PROD_PATH }} "rm -f ~/Desktop/TwitchBot.jar"
 
             -   name: Copy Artifact
-                run: scp tmp/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
+                run: scp -3 ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
 
             -   name: Start the service
                 run: ssh ${{ vars.PROD_PATH }} "sudo reboot"
