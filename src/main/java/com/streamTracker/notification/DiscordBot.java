@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -33,7 +34,7 @@ public class DiscordBot extends ListenerAdapter {
      * Last time bot was used. Based on this time bot will be shut down after {@link ApplicationProperties#getDiscordShutdownDelay()}.
      */
     @NonNull
-    private LocalDateTime lastUsed = LocalDateTime.now();
+    private LocalDateTime lastUsed = LocalDateTime.MIN;
 
     /**
      * Flag if method to shut down bot was already called by different thread.
@@ -48,6 +49,11 @@ public class DiscordBot extends ListenerAdapter {
     private final ApplicationProperties properties;
 
     /**
+     * System clock.
+     */
+    @NonNull
+    private final Clock clock;
+    /**
      * Creates the bot that sends the message and shutdowns itself.
      *
      * @param users   List of users that should receive the message.
@@ -55,11 +61,11 @@ public class DiscordBot extends ListenerAdapter {
      */
     public synchronized void sendMessage(@NonNull List<StreamModel.UserModel> users, @NonNull String message) {
         log.debug("Sending message to users {}, {}", users.stream().map(StreamModel.UserModel::getName).toList(), message);
-        this.lastUsed = LocalDateTime.now();
+        this.lastUsed = LocalDateTime.now(this.clock);
         List<StreamModel.UserModel> filteredUsers = users.stream()
-                .filter(u -> u.getLastPing().plus(this.properties.getMessageDelay()).isBefore(LocalDateTime.now()))
+                .filter(u -> u.getLastPing().plus(this.properties.getMessageDelay()).isBefore(LocalDateTime.now(this.clock)))
                 .toList();
-        filteredUsers.forEach(u -> u.setLastPing(LocalDateTime.now()));
+        filteredUsers.forEach(u -> u.setLastPing(LocalDateTime.now(this.clock)));
 
         try {
             if (this.jdaInstance == null || !this.jdaInstance.getStatus().equals(JDA.Status.CONNECTED)) {
@@ -104,14 +110,14 @@ public class DiscordBot extends ListenerAdapter {
         if (this.jdaInstance == null) {
             return;
         }
-        long timeDiff = this.lastUsed.plus(this.properties.getDiscordShutdownDelay()).toEpochSecond(ZoneOffset.UTC) - LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+        long timeDiff = this.lastUsed.plus(this.properties.getDiscordShutdownDelay()).toEpochSecond(ZoneOffset.UTC) - LocalDateTime.now(this.clock).toEpochSecond(ZoneOffset.UTC);
         while (timeDiff > 0) {
             try {
                 Thread.sleep(timeDiff * 1000);
             } catch (Exception e) {
                 log.error("Failed to sleep thread for Discord shutdown.");
             }
-            timeDiff = this.lastUsed.plus(this.properties.getDiscordShutdownDelay()).toEpochSecond(ZoneOffset.UTC) - LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+            timeDiff = this.lastUsed.plus(this.properties.getDiscordShutdownDelay()).toEpochSecond(ZoneOffset.UTC) - LocalDateTime.now(this.clock).toEpochSecond(ZoneOffset.UTC);
         }
         if (this.jdaInstance != null) {
             JDA pointer = this.jdaInstance;
