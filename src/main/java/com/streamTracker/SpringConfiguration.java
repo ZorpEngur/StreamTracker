@@ -11,6 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
+import java.time.Clock;
+
 @Configuration
 public class SpringConfiguration {
 
@@ -31,17 +34,22 @@ public class SpringConfiguration {
 
     @Bean @NonNull
     public StreamRecorder streamRecorder(@NonNull ApplicationProperties properties) {
-        return new StreamRecorder(properties);
+        return new StreamRecorder(new File(properties.getFilePath(), "VODs"), properties);
     }
 
     @Bean @NonNull
-    public DiscordBot discordBot(@NonNull ApplicationProperties properties) {
-        return new DiscordBot(properties);
+    public DiscordBot discordBot(@NonNull ApplicationProperties properties, @NonNull Clock clock) {
+        return new DiscordBot(properties, clock);
     }
 
     @Bean @NonNull
     @ConfigurationProperties("stream.tracker")
     public ApplicationProperties properties() {
         return new ApplicationProperties();
+    }
+    
+    @Bean @NonNull
+    public Clock clock() {
+        return Clock.systemUTC();
     }
 }
