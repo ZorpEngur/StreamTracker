@@ -20,5 +20,4 @@ jobs:
                 run: scp -3 ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
 
             -   name: Start the service
-                run: ssh ${{ vars.PROD_PATH }} "sudo reboot"
-                continue-on-error: true
+                run: ssh ${{ vars.PROD_PATH }} "sudo shutdown -r 1"
