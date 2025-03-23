@@ -12,4 +12,3 @@ runs:
         -   name: Test maven
             shell: bash
             run: mvn test
- 
