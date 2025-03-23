@@ -2,6 +2,7 @@ package com.streamTracker.notification;
 
 import com.streamTracker.ApplicationProperties;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
@@ -19,7 +20,7 @@ import java.util.regex.Pattern;
 /**
  * Recorder for twitch streams.
  */
-@Slf4j
+@Slf4j @RequiredArgsConstructor
 public class StreamRecorder {
 
     /**
@@ -52,25 +53,21 @@ public class StreamRecorder {
     @NonNull
     private final ApplicationProperties properties;
 
-    public StreamRecorder(@NonNull ApplicationProperties properties) {
-        this.properties = properties;
-        this.dir = new File(properties.getFilePath(), "VODs");
-        if (dir.mkdirs()) {
-            log.debug("Directory initialize.");
-        }
-    }
-
     /**
      * Starts recording of a twitch stream.
      *
      * @param streamName Name of twitch stream to record.
      */
     public void record(@NonNull String streamName) {
+        if (this.dir.mkdirs()) {
+            log.debug("Directory initialized.");
+        } else {
+            makeSpace();
+        }
         log.debug("Recording initialization. {}", streamName);
-        makeSpace();
 
-        String fileName = dir.getAbsolutePath() + "/VOD_" + streamName + "-" + dateFormat.format(new Date()) + ".mkv";
-        String logName = dir.getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
+        String fileName = this.dir.getAbsolutePath() + "/VOD_" + streamName + "-" + dateFormat.format(new Date()) + ".mkv";
+        String logName = this.dir.getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
 
         try {
             BufferedReader i = new BufferedReader(
@@ -99,14 +96,18 @@ public class StreamRecorder {
      * If not, removes oldest recordings until enough available space.
      */
     private void makeSpace() {
-        long usableSpace = dir.getUsableSpace() / (1024 * 1024 * 1024);
+        long usableSpace = this.dir.getUsableSpace() / (1024 * 1024 * 1024);
         log.debug("Usable space is {} GB", usableSpace);
         try {
-            while (usableSpace < properties.getSpaceThreshold()) {
-                File[] i = dir.listFiles();
+            while (usableSpace < this.properties.getSpaceThreshold()) {
+                File[] i = this.dir.listFiles();
+                if (i == null || i.length == 0) {
+                    log.warn("No files to delete while usable space low.");
+                    break;
+                }
                 Arrays.stream(i)
                         .min(Comparator.comparing(e -> {
-                            Matcher matcher1 = pattern.matcher(e.getName());
+                            Matcher matcher1 = this.pattern.matcher(e.getName());
                             matcher1.find();
                             return matcher1.group().replaceAll("[^0-9]", "");
                         }))
@@ -114,7 +115,7 @@ public class StreamRecorder {
                             log.warn("Insufficient space. File {} was deleted.", e.getName());
                             return e.delete();
                         });
-                usableSpace = dir.getUsableSpace() / (1024 * 1024 * 1024);
+                usableSpace = this.dir.getUsableSpace() / (1024 * 1024 * 1024);
             }
         } catch (Exception e) {
             log.error("Space check or file deletion failed.", e);
