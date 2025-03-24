@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Model of stream containing data about stream and all users registered to it.
  */
-@Getter
+@Getter @RequiredArgsConstructor
 public class StreamModel {
 
     /**
@@ -32,12 +32,6 @@ public class StreamModel {
     @NonNull
     private final List<UserModel> users;
 
-    public StreamModel(@NonNull String streamName, @NonNull List<DatabaseUserModel> users) {
-        this.streamName = streamName;
-        this.recordStream = users.stream().anyMatch(DatabaseUserModel::isRecordStream);
-        this.users = users.stream().map(UserModel::new).toList();
-    }
-
     /**
      * Class representing user.
      */
@@ -45,20 +39,10 @@ public class StreamModel {
     @RequiredArgsConstructor
     public static class UserModel {
 
-        public UserModel(DatabaseUserModel user) {
-            this(user.getName(), user.getDiscordId(), user.isEnableStreamPredict());
-        }
-
         /**
-         * Name of the user.
+         * ID of the user
          */
-        @NonNull
-        private final String name;
-
-        /**
-         * Discord ID of the user used for sending notifications.
-         */
-        private final long discordId;
+        private final int id;
 
         /**
          * Flag if notification should be sent before stream goes live.

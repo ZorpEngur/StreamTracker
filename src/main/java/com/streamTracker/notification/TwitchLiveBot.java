@@ -88,7 +88,7 @@ public class TwitchLiveBot {
      */
     public void loadUsers() {
         this.streamModels = this.twitchBotService.getStreamerModels();
-        this.streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getName).toList()));
+        this.streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getId).toList()));
         registerEvents();
         registerFeatures();
     }
@@ -108,16 +108,14 @@ public class TwitchLiveBot {
         this.twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
             sendMessage("(title change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers()));
 
-        this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
-            sendMessage("(game category change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers());
-        });
+        this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> 
+                sendMessage("(game category change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers()));
 
         this.twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
             if ((event.getMessage().contains("NEW TITLE!") || event.getMessage().contains("NEW GAME!") || event.getMessage().contains("has gone live")) && event.getMessageEvent().getUserName().equalsIgnoreCase("TitleChange_Bot")) {
                 List<StreamModel.UserModel> users = getStreamModel(event.getChannel().getName()).getUsers()
                     .stream()
                     .filter(StreamModel.UserModel::isEnableStreamPredict)
-                    .filter(u -> event.getMessage().toLowerCase().contains(u.getName().toLowerCase()))
                     .toList();
                 sendMessage("(live predict)", event.getChannel().getName(), users);
             }
@@ -131,7 +129,7 @@ public class TwitchLiveBot {
      * @param channel   Name of the channel that went live.
      */
     private void sendMessage(@NonNull String eventType, @NonNull String channel, @NonNull List<StreamModel.UserModel> users) {
-        log.trace("Send message called with event {} for channel {}, notifying users {}", eventType, channel, users.stream().map(StreamModel.UserModel::getName).toList());
+        log.trace("Send message called with event {} for channel {}.", eventType, channel);
         this.discordBot.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
     }
 

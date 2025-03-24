@@ -2,13 +2,12 @@ package com.streamTracker.database.twitch;
 
 import com.streamTracker.database.DatabaseReader;
 import com.streamTracker.database.model.DatabaseStreamModel;
-import com.streamTracker.database.model.DatabaseUserModel;
-import com.streamTracker.database.model.UserRegistrationModel;
 import lombok.NonNull;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class containing database operations for twitch bots.
@@ -20,16 +19,6 @@ public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
     }
 
     /**
-     * Checks whether user is already saved in database.
-     *
-     * @param discordId ID of user to be verified.
-     * @return Whether this ID is already saved in database.
-     */
-    protected boolean isUser(long discordId) {
-        return get(mapper -> mapper.userExist(discordId));
-    }
-
-    /**
      * Gets stream model from database.
      *
      * @param streamName Name of stream to be returned.
@@ -37,8 +26,7 @@ public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
      */
     @Nullable
     protected DatabaseStreamModel getStream(@NonNull String streamName) {
-        List<DatabaseStreamModel> result = get(mapper -> mapper.getStream(streamName));
-        return result.isEmpty() ? null : result.get(0);
+        return get(mapper -> mapper.getStream(streamName));
     }
 
     /**
@@ -52,31 +40,11 @@ public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
     }
 
     /**
-     * Returns list of all users registered for this stream.
-     *
-     * @param id ID of the stream.
-     * @return List of all user models.
-     */
-    @NonNull
-    protected List<DatabaseUserModel> getChannelUsers(@NonNull Integer id) {
-        return get(mapper -> mapper.getChannelUsers(id));
-    }
-
-    /**
-     * Inserts user into database.
-     *
-     * @param model User data to insert.
-     */
-    protected void insertUser(@NonNull UserRegistrationModel model) {
-        insert(mapper -> mapper.insertUser(model));
-    }
-
-    /**
      * Inserts stream into database.
      *
      * @param model Stream data to insert.
      */
-    protected void insertStream(@NonNull UserRegistrationModel model) {
+    protected void insertStream(@NonNull TwitchUserRelModel model) {
         insert(mapper -> mapper.insertStream(model));
     }
 
@@ -85,7 +53,7 @@ public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
      *
      * @param model Relationship data to insert.
      */
-    protected void insertRel(@NonNull UserRegistrationModel model) {
+    protected void insertRel(@NonNull TwitchUserRelModel model) {
         insert(mapper -> mapper.insertStreamUserRel(model));
     }
 
@@ -95,7 +63,17 @@ public class TwitchBotDAO extends DatabaseReader<ITwitchBotMapper> {
      * @param model Relationship data to verify.
      * @return Whether relationship already exists.
      */
-    protected boolean relExist(@NonNull UserRegistrationModel model) {
-        return get(mapper -> mapper.relExist(model.getStreamId(), model.getDiscordId()));
+    protected boolean relExist(@NonNull TwitchUserRelModel model) {
+        return get(mapper -> mapper.relExist(Objects.requireNonNull(model.getStreamId()), model.getUserId()));
+    }
+
+    /**
+     * Retrieves all Twitch stream models from database.
+     * 
+     * @return List of stream models.
+     */
+    @NonNull
+    protected List<TwitchUserRelModel> getStreamModels() {
+        return get(ITwitchBotMapper::getStreamModels);
     }
 }

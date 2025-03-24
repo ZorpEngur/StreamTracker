@@ -7,7 +7,7 @@ import org.flywaydb.core.Flyway
 import org.testcontainers.containers.PostgreSQLContainer
 import spock.lang.Specification
 
-class SpecBase extends Specification {
+class DatabaseSpecBase extends Specification {
 
     SqlSessionFactory sessionFactory
 

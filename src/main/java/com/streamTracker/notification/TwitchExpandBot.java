@@ -6,16 +6,10 @@ import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.streamTracker.ApplicationProperties;
-import com.streamTracker.database.model.UserRegistrationModel;
-import com.streamTracker.database.twitch.TwitchBotService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Bot that handles user operations.
@@ -25,22 +19,10 @@ import java.util.stream.Collectors;
 public class TwitchExpandBot {
 
     /**
-     * Live bot onto which edits are applied.
-     */
-    @NonNull
-    private final TwitchLiveBot twitchLiveBot;
-
-    /**
      * Client of the bot.
      */
     @Nullable
     private TwitchClient twitchClient;
-
-    /**
-     * Database service for twitch.
-     */
-    @NonNull
-    private final TwitchBotService twitchBotService;
 
     /**
      * Properties for the application.
@@ -48,6 +30,12 @@ public class TwitchExpandBot {
     @NonNull
     private final ApplicationProperties properties;
 
+    /**
+     * Parser of the command.
+     */
+    @NonNull
+    private final CommandManager commandManager;
+    
     /**
      * Starts the bot.
      */
@@ -65,39 +53,23 @@ public class TwitchExpandBot {
                 .withChatAccount(credential)
                 .build();
 
-        this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-            if (event.getUser().getName().equalsIgnoreCase(this.properties.getManageChannel()) && event.getMessage().startsWith("set")) {
-                addUser(event.getMessage());
-            }
-        });
-
+        registerEvents();
         registerFeatures();
         return this;
     }
 
-    /**
-     * Adds new user to database and reloads users in {@link TwitchLiveBot}.
-     *
-     * @param message Message in format: CHANNEL USER_NAME DISCORD_ID
-     */
-    public void addUser(@NonNull String message) {
-        List<String> data = Arrays.stream(message.toLowerCase().split(" ")).collect(Collectors.toList());
-        data.removeIf(String::isBlank);
-        UserRegistrationModel newUser = UserRegistrationModel.builder()
-                .streamName(data.get(1))
-                .userName(data.get(2))
-                .discordId(Long.parseLong(data.get(3)))
-                .streamPrediction(parseBoolean(data.get(4)))
-                .recordStream(parseBoolean(data.get(5)))
-                .build();
-        this.twitchBotService.addUser(newUser);
-        this.twitchLiveBot.loadUsers();
-        this.twitchClient.getChat().sendMessage(this.properties.getManageChannel(), "Added!");
-        log.debug("Added user {}", data);
-    }
-
-    private boolean parseBoolean(@NonNull String input) {
-        return input.equalsIgnoreCase("true") || input.equalsIgnoreCase("1") || input.equalsIgnoreCase("yes");
+    private void registerEvents() {
+        this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+            if (event.getUser().getName().equalsIgnoreCase(this.properties.getManageChannel())) {
+                try {
+                    this.commandManager.parseCommand(event.getMessage(), Long.valueOf(event.getUser().getId()), event.getUser().getName());
+                } catch (CommandException ex) {
+                    this.twitchClient.getChat().sendMessage(event.getChannel().getName(), ex.getMessage());
+                } catch (Exception ex) {
+                    this.twitchClient.getChat().sendMessage(event.getChannel().getName(), "Error has occurred. :/");
+                }
+            }
+        });
     }
 
     /**
@@ -105,7 +77,7 @@ public class TwitchExpandBot {
      */
     private void registerFeatures() {
         this.twitchClient.getClientHelper().enableStreamEventListener(this.properties.getManageChannel());
-        this.twitchClient.getChat().joinChannel(this.properties.getManageChannel());
+        this.twitchClient.getChat().joinChannel(this.properties.getTwitchName());
     }
 
     /**

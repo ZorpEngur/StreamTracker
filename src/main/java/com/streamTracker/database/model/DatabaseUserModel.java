@@ -1,5 +1,9 @@
 package com.streamTracker.database.model;
 
+import jakarta.annotation.Nullable;
+
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -8,14 +12,22 @@ import lombok.Setter;
 /**
  * Class representing user in database.
  */
-@Getter @Setter
+@Getter @Setter @Builder
 @RequiredArgsConstructor
+@EqualsAndHashCode
 public class DatabaseUserModel {
+
+    /**
+     * ID of the user.
+     */
+    @Nullable
+    private final Integer id;
 
     /**
      * Discord ID of the user used for sending notifications.
      */
-    private final long discordId;
+    @Nullable
+    private final Long discordId;
 
     /**
      * Name of the user.
@@ -24,12 +36,8 @@ public class DatabaseUserModel {
     private final String name;
 
     /**
-     * Flag if notification should be sent before stream goes live.
+     * Twitch ID of the user.
      */
-    private boolean enableStreamPredict = false;
-
-    /**
-     * Flag if stream should be recorded.
-     */
-    private boolean recordStream = false;
+    @Nullable
+    private final Long twitchId;
 }

@@ -1,20 +1,25 @@
 package com.streamTracker;
 
+import com.streamTracker.database.DatabaseConfiguration;
 import com.streamTracker.database.twitch.TwitchBotService;
+import com.streamTracker.database.user.UserService;
 import com.streamTracker.notification.DiscordBot;
 import com.streamTracker.notification.StreamRecorder;
 import com.streamTracker.notification.TwitchExpandBot;
 import com.streamTracker.notification.TwitchLiveBot;
 import jakarta.annotation.Nullable;
+
+import com.streamTracker.notification.CommandManager;
 import lombok.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.io.File;
 import java.time.Clock;
 
-@Configuration
+@Configuration @Import(DatabaseConfiguration.class)
 public class SpringConfiguration {
 
     @Bean @NonNull
@@ -24,12 +29,16 @@ public class SpringConfiguration {
     }
 
     @Bean @Nullable
-    public TwitchExpandBot twitchExpandBot(@NonNull TwitchLiveBot twitchLiveBot, @NonNull ApplicationProperties properties,
-                                           @NonNull TwitchBotService twitchBotService) {
+    public TwitchExpandBot twitchExpandBot(@NonNull ApplicationProperties properties, @NonNull CommandManager commandManager) {
         if (properties.getManageChannel() != null) {
-            return new TwitchExpandBot(twitchLiveBot, twitchBotService, properties).startBot();
+            return new TwitchExpandBot(properties, commandManager).startBot();
         }
         return null;
+    }
+    
+    @Bean @NonNull
+    public CommandManager commandManager(@NonNull TwitchBotService twitchBotService, @NonNull UserService userService) {
+        return new CommandManager(twitchBotService, userService);
     }
 
     @Bean @NonNull
@@ -38,8 +47,9 @@ public class SpringConfiguration {
     }
 
     @Bean @NonNull
-    public DiscordBot discordBot(@NonNull ApplicationProperties properties, @NonNull Clock clock) {
-        return new DiscordBot(properties, clock);
+    public DiscordBot discordBot(@NonNull ApplicationProperties properties, @NonNull Clock clock,
+                                 @NonNull UserService userService) {
+        return new DiscordBot(properties, clock, userService);
     }
 
     @Bean @NonNull
