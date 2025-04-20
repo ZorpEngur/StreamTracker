@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Getter
 @RequiredArgsConstructor
-public class DatabaseStreamModel {
+public class StreamDatabaseModel {
 
     /**
      * Database ID of the stream.

@@ -1,16 +1,26 @@
-package com.streamTracker.database.model;
+package com.streamTracker.database.twitch;
 
+import com.streamTracker.database.model.NotificationPlatform;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Model for data passed by user when making registration with bot.
  */
-@Builder @Getter
-public class UserRegistrationModel {
+@Builder
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
+public class TwitchUserRelModel {
 
     /**
      * Database id of the stream.
@@ -26,15 +36,9 @@ public class UserRegistrationModel {
     private String streamName;
 
     /**
-     * Name of the user.
+     * ID of the user.
      */
-    @NonNull
-    private String userName;
-
-    /**
-     * Discord ID of the user used for sending notifications.
-     */
-    private long discordId;
+    private int userId;
 
     /**
      * If stream should be recoded.
@@ -46,9 +50,9 @@ public class UserRegistrationModel {
      */
     private boolean streamPrediction;
 
-    @Override
-    public String toString() {
-        return "Stream ID: " + streamId + ", stream name: " + streamName + ", user name: " + userName + ", discord ID: "
-            + discordId + ", record stream: " + recordStream + ", stream prediction: " + streamPrediction;
-    }
+    /**
+     * Identifier of the notification platform.
+     */
+    @NonNull
+    private NotificationPlatform notificationPlatform;
 }

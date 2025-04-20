@@ -5,7 +5,7 @@ import com.github.twitch4j.TwitchClient
 import com.github.twitch4j.TwitchClientHelper
 import com.github.twitch4j.chat.TwitchChat
 import com.streamTracker.ApplicationProperties
-import com.streamTracker.database.model.DatabaseUserModel
+import com.streamTracker.database.model.NotificationPlatform
 import com.streamTracker.database.twitch.TwitchBotService
 import spock.lang.Specification
 
@@ -14,8 +14,8 @@ class TwitchLiveBotSpec extends Specification {
     void "Should load users"() {
         given:
         TwitchBotService service = Mock() {
-            1 * getStreamerModels() >> [new StreamModel("stream", [new DatabaseUserModel(1L, "user")]),
-                                        new StreamModel("existingStream", [new DatabaseUserModel(1L, "user")])]
+            1 * getStreamerModels() >> [new StreamModel("stream", true, [new StreamModel.UserModel(1, true, NotificationPlatform.DISCORD)]),
+                                        new StreamModel("existingStream", true, [new StreamModel.UserModel(1, false, NotificationPlatform.DISCORD)])]
         }
         TwitchChat chat = Mock() {
             getChannels() >> ["existingStream"]
@@ -27,6 +27,7 @@ class TwitchLiveBotSpec extends Specification {
         bot.twitchClient = client
 
         when:
+        bot.registerEvents()
         bot.loadUsers()
 
         then:
