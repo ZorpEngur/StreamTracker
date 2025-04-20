@@ -10,6 +10,9 @@ import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
 import com.streamTracker.ApplicationProperties;
 import com.streamTracker.database.twitch.TwitchBotService;
+import com.streamTracker.events.Event;
+import com.streamTracker.events.NewNotificationEvent;
+import com.streamTracker.events.EventHandler;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +26,7 @@ import java.util.Objects;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TwitchLiveBot {
+public class TwitchLiveBot extends EventHandler {
 
     /**
      * List of registered streams.
@@ -80,17 +83,24 @@ public class TwitchLiveBot {
                 .withEnableChat(true)
                 .build();
 
+        registerEvents();
         loadUsers();
         return this;
+    }
+
+    @Override
+    protected void onEvent(@NonNull Event event) {
+        if (event instanceof NewNotificationEvent) {
+            loadUsers();
+        }
     }
 
     /**
      * Loads all users for this bot.
      */
-    public void loadUsers() {
+    private void loadUsers() {
         this.streamModels = this.twitchBotService.getStreamerModels();
         this.streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getId).toList()));
-        registerEvents();
         registerFeatures();
     }
 
@@ -141,6 +151,7 @@ public class TwitchLiveBot {
      * @param streamName Name of desired model.
      * @return Stream model or null.
      * @throws RuntimeException If stream name wasn't found. Should never happen.
+     * TODO: Can throw RuntimeException if the channel got deleted from DB and the streams got reloaded; because the bot never leaves a channel.
      */
     @NonNull
     private StreamModel getStreamModel(@NonNull String streamName) {
