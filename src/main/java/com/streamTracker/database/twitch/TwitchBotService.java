@@ -1,13 +1,12 @@
 package com.streamTracker.database.twitch;
 
-import com.streamTracker.database.model.DatabaseStreamModel;
-import com.streamTracker.database.model.UserRegistrationModel;
+import com.streamTracker.database.model.StreamDatabaseModel;
 import com.streamTracker.notification.StreamModel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Database service for twitch bots.
@@ -28,11 +27,13 @@ public class TwitchBotService {
      */
     @NonNull
     public List<StreamModel> getStreamerModels() {
-        List<StreamModel> result = new ArrayList<>();
-        for (DatabaseStreamModel stream : this.twitchBotDAO.getStreams()) {
-            result.add(new StreamModel(stream.getName(), this.twitchBotDAO.getChannelUsers(stream.getId())));
-        }
-        return result;
+        return this.twitchBotDAO.getStreamModels().stream()
+                .collect(Collectors.groupingBy(TwitchUserRelModel::getStreamId))
+                .values().stream()
+                .map(l -> new StreamModel(l.get(0).getStreamName(),
+                        l.stream().anyMatch(TwitchUserRelModel::isRecordStream),
+                        l.stream().map(u -> new StreamModel.UserModel(u.getUserId(), u.isStreamPrediction(), u.getNotificationPlatform())).toList()))
+                .toList();
     }
 
     /**
@@ -40,17 +41,14 @@ public class TwitchBotService {
      *
      * @param userRegistration Data about user and stream event.
      */
-    public void addUser(@NonNull UserRegistrationModel userRegistration) {
-        if (!this.twitchBotDAO.isUser(userRegistration.getDiscordId())) {
-            this.twitchBotDAO.insertUser(userRegistration);
-        }
-        DatabaseStreamModel stream = this.twitchBotDAO.getStream(userRegistration.getStreamName());
+    public void addUser(@NonNull TwitchUserRelModel userRegistration) {
+        StreamDatabaseModel stream = this.twitchBotDAO.getStream(userRegistration.getStreamName());
         if (stream == null) {
             this.twitchBotDAO.insertStream(userRegistration);
         } else {
             userRegistration.setStreamId(stream.getId());
         }
-        if (!this.twitchBotDAO.relExist(userRegistration)){
+        if (!this.twitchBotDAO.relExist(userRegistration)) {
             this.twitchBotDAO.insertRel(userRegistration);
         }
     }

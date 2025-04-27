@@ -1,12 +1,13 @@
 package com.streamTracker.database
 
-import com.streamTracker.SpecBase
-import com.streamTracker.database.model.UserRegistrationModel
+import com.streamTracker.DatabaseSpecBase
+import com.streamTracker.database.model.NotificationPlatform
 import com.streamTracker.database.twitch.TwitchBotDAO
 import com.streamTracker.database.twitch.TwitchBotService
+import com.streamTracker.database.twitch.TwitchUserRelModel
 import spock.lang.Shared
 
-class TwitchBotServiceSpec extends SpecBase {
+class TwitchBotServiceDatabaseSpec extends DatabaseSpecBase {
 
     @Shared
     TwitchBotService twitchBotService
@@ -24,7 +25,7 @@ class TwitchBotServiceSpec extends SpecBase {
         for (def model : models) {
             if (model.getStreamName() == "S1") {
                 assert model.getUsers().size() == 1
-                assert model.getUsers().get(0).getDiscordId() == 453262634536816283
+                assert model.getUsers().get(0).getId() == 1
                 assert !model.getUsers().get(0).isEnableStreamPredict()
                 assert !model.isRecordStream()
             } else {
@@ -37,10 +38,10 @@ class TwitchBotServiceSpec extends SpecBase {
 
     void "Should insert new user in database"() {
         given:
-        def user = UserRegistrationModel.builder()
+        def user = TwitchUserRelModel.builder()
                 .streamName(streamName)
-                .discordId(discordId)
-                .userName("Name")
+                .userId(userId)
+                .notificationPlatform(NotificationPlatform.DISCORD)
                 .build()
 
         when:
@@ -49,20 +50,20 @@ class TwitchBotServiceSpec extends SpecBase {
         then:
         def models = this.twitchBotService.getStreamerModels()
         def model = models.findAll { it -> it.getStreamName() == streamName }.get(0)
-        model.getUsers().any { it -> it.getName() == "Name" && it.getDiscordId() == discordId }
+        model.getUsers().any { it -> it.getId() == userId }
 
         where:
-        streamName | discordId
-        "S1"       | 123456
-        "S2"       | 123456
+        streamName | userId
+        "S1"       | 1
+        "S2"       | 1
     }
 
     void "Should not insert duplicate user"() {
         given:
-        def user = UserRegistrationModel.builder()
+        def user = TwitchUserRelModel.builder()
                 .streamName("S1")
-                .discordId(123456)
-                .userName("Name")
+                .userId(3)
+                .notificationPlatform(NotificationPlatform.DISCORD)
                 .build()
         def originalSize = this.twitchBotService.getStreamerModels().get(0).getUsers().size()
 
@@ -76,10 +77,10 @@ class TwitchBotServiceSpec extends SpecBase {
 
     void "Should create new stream model"() {
         given:
-        def user = UserRegistrationModel.builder()
+        def user = TwitchUserRelModel.builder()
                 .streamName("S3")
-                .discordId(123456)
-                .userName("Name")
+                .userId(2)
+                .notificationPlatform(NotificationPlatform.DISCORD)
                 .build()
         def originalSize = this.twitchBotService.getStreamerModels().size()
 
@@ -88,8 +89,7 @@ class TwitchBotServiceSpec extends SpecBase {
 
         then:
         this.twitchBotService.getStreamerModels().size() == originalSize + 1
-        def model = this.twitchBotService.getStreamerModels().findAll {it -> it.getStreamName() == "S3"}.get(0)
+        def model = this.twitchBotService.getStreamerModels().findAll { it -> it.getStreamName() == "S3" }.get(0)
         model.getUsers().size() == 1
-        model.getUsers().get(0).getName() == "Name"
     }
 }

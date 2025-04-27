@@ -1,6 +1,11 @@
 package com.streamTracker.notification;
 
 import com.streamTracker.ApplicationProperties;
+import com.streamTracker.database.model.NotificationPlatform;
+import com.streamTracker.database.model.UserDatabaseModel;
+import com.streamTracker.database.user.UserService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +20,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -53,6 +59,13 @@ public class DiscordBot extends ListenerAdapter {
      */
     @NonNull
     private final Clock clock;
+
+    /**
+     * Service for getting users.
+     */
+    @NonNull
+    private final UserService userService;
+
     /**
      * Creates the bot that sends the message and shutdowns itself.
      *
@@ -60,12 +73,23 @@ public class DiscordBot extends ListenerAdapter {
      * @param message The message to be sent.
      */
     public synchronized void sendMessage(@NonNull List<StreamModel.UserModel> users, @NonNull String message) {
-        log.debug("Sending message to users {}, {}", users.stream().map(StreamModel.UserModel::getName).toList(), message);
         this.lastUsed = LocalDateTime.now(this.clock);
-        List<StreamModel.UserModel> filteredUsers = users.stream()
+        List<DiscordUser> filteredUsers = users.stream()
+                .filter(u -> u.getNotificationPlatform().equals(NotificationPlatform.DISCORD))
                 .filter(u -> u.getLastPing().plus(this.properties.getMessageDelay()).isBefore(LocalDateTime.now(this.clock)))
+                .map(u -> {
+                    UserDatabaseModel user = this.userService.getUser(u.getId());
+                    if (user != null && user.getDiscordId() != null)
+                        return new DiscordUser(u, user.getDiscordId(), user.getName());
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .map(u -> u.setLastPing(LocalDateTime.now(this.clock)))
                 .toList();
-        filteredUsers.forEach(u -> u.setLastPing(LocalDateTime.now(this.clock)));
+
+        if (filteredUsers.isEmpty()) {
+            return;
+        }
 
         try {
             if (this.jdaInstance == null || !this.jdaInstance.getStatus().equals(JDA.Status.CONNECTED)) {
@@ -93,8 +117,10 @@ public class DiscordBot extends ListenerAdapter {
      * @param users   List of users whom the message will be sent.
      * @param message The message.
      */
-    private void sendMessages(@NonNull List<StreamModel.UserModel> users, @NonNull String message) {
-        for (StreamModel.UserModel user : users) {
+    private void sendMessages(@NonNull List<DiscordUser> users, @NonNull String message) {
+        log.debug("Sending message to users {}, {}", users.stream().map(DiscordUser::getName).toList(), message);
+        for (DiscordUser user : users) {
+            assert this.jdaInstance != null : "JDA instance should be set at this point.";
             this.jdaInstance.openPrivateChannelById(user.getDiscordId()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
         }
         if (this.destroyLock.compareAndSet(false, true)) {
@@ -133,7 +159,47 @@ public class DiscordBot extends ListenerAdapter {
      */
     public void destroy() {
         if (this.jdaInstance != null) {
-            this.jdaInstance.shutdown(); this.jdaInstance = null;
+            this.jdaInstance.shutdown();
+            this.jdaInstance = null;
         }
+    }
+
+    /**
+     * Discord user data.
+     */
+    @AllArgsConstructor
+    private static class DiscordUser {
+
+        /**
+         * User data from the stream.
+         */
+        @NonNull
+        private StreamModel.UserModel user;
+
+        /**
+         * Discord ID of the user.
+         */
+        @Getter
+        private long discordId;
+
+        /**
+         * Name of the user.
+         */
+        @NonNull
+        @Getter
+        private String name;
+
+        /**
+         * Sets last pinged time for the user.
+         *
+         * @param time Time when the user was pinged.
+         * @return The user.
+         */
+        @NonNull
+        public DiscordUser setLastPing(@NonNull LocalDateTime time) {
+            this.user.setLastPing(time);
+            return this;
+        }
+
     }
 }
