@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Allows objects to send information about an event happening.
@@ -38,7 +39,7 @@ public abstract class EventHandler {
     protected void sendEvent(@NonNull Event event) {
         INSTANCES.parallelStream().forEach(e -> {
             if (this != e) {
-                e.onEvent(event);
+                CompletableFuture.runAsync(() -> e.onEvent(event));
             }
         });
     }
