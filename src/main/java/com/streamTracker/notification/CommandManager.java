@@ -5,6 +5,8 @@ import com.streamTracker.database.model.UserDatabaseModel;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.database.twitch.TwitchUserRelModel;
 import com.streamTracker.database.user.UserService;
+import com.streamTracker.events.EventHandler;
+import com.streamTracker.events.NewNotificationEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -20,7 +22,7 @@ import java.util.Iterator;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class CommandManager {
+public class CommandManager extends EventHandler {
 
     /**
      * Database service for twitch.
@@ -167,6 +169,7 @@ public class CommandManager {
         }
         this.twitchBotService.addUser(builder.build());
         log.info("Set new notification event. {}", builder.build().toString());
+        sendEvent(new NewNotificationEvent());
         return "Notification set for user " + userName + " for channel " + twitchName + " using platform " + platformName;
     }
 
