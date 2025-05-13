@@ -7,6 +7,7 @@ import com.github.twitch4j.chat.TwitchChat
 import com.streamTracker.ApplicationProperties
 import com.streamTracker.database.model.NotificationPlatform
 import com.streamTracker.database.twitch.TwitchBotService
+import com.streamTracker.recorder.StreamRecorder
 import spock.lang.Specification
 
 class TwitchLiveBotSpec extends Specification {
