@@ -1,5 +1,6 @@
 package com.streamTracker;
 
+import com.streamTracker.api.RestConfiguration;
 import com.streamTracker.database.DatabaseConfiguration;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.database.user.UserService;
@@ -19,7 +20,7 @@ import java.io.File;
 import java.time.Clock;
 
 @Configuration
-@Import(DatabaseConfiguration.class)
+@Import({DatabaseConfiguration.class, RestConfiguration.class})
 public class SpringConfiguration {
 
     @Bean
@@ -69,4 +70,5 @@ public class SpringConfiguration {
     public Clock clock() {
         return Clock.systemUTC();
     }
+
 }
