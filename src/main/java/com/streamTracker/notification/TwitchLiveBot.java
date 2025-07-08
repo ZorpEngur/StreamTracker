@@ -13,6 +13,7 @@ import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.events.Event;
 import com.streamTracker.events.NewNotificationEvent;
 import com.streamTracker.events.EventHandler;
+import com.streamTracker.recorder.StreamRecorder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
