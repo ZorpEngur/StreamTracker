@@ -1,6 +1,8 @@
 package com.streamTracker.notification
 
 import com.streamTracker.ApplicationProperties
+import com.streamTracker.recorder.FileController
+import com.streamTracker.recorder.StreamRecorder
 import spock.lang.Specification
 
 class StreamRecorderSpec extends Specification {
@@ -20,7 +22,7 @@ class StreamRecorderSpec extends Specification {
             listFiles() >> [newFile, oldFile]
         }
 
-        def recorder = new StreamRecorder(dir, properties)
+        def recorder = new StreamRecorder(Spy(new FileController(properties)) { it.getVodDirectory() >> dir}, properties)
 
         when:
         recorder.makeSpace()

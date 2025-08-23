@@ -1,13 +1,15 @@
 package com.streamTracker;
 
+import com.streamTracker.api.RestConfiguration;
 import com.streamTracker.database.DatabaseConfiguration;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.database.user.UserService;
 import com.streamTracker.notification.CommandManager;
 import com.streamTracker.notification.DiscordBot;
-import com.streamTracker.notification.StreamRecorder;
 import com.streamTracker.notification.TwitchCommandBot;
 import com.streamTracker.notification.TwitchLiveBot;
+import com.streamTracker.recorder.FileController;
+import com.streamTracker.recorder.StreamRecorder;
 import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -15,11 +17,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import java.io.File;
 import java.time.Clock;
 
 @Configuration
-@Import(DatabaseConfiguration.class)
+@Import({DatabaseConfiguration.class, RestConfiguration.class})
 public class SpringConfiguration {
 
     @Bean
@@ -46,8 +47,14 @@ public class SpringConfiguration {
 
     @Bean
     @NonNull
-    public StreamRecorder streamRecorder(@NonNull ApplicationProperties properties) {
-        return new StreamRecorder(new File(properties.getFilePath(), "VODs"), properties);
+    public StreamRecorder streamRecorder(@NonNull ApplicationProperties properties, @NonNull FileController fIleController) {
+        return new StreamRecorder(fIleController, properties);
+    }
+
+    @Bean
+    @NonNull
+    public FileController fIleController(@NonNull ApplicationProperties properties) {
+        return new FileController(properties);
     }
 
     @Bean
