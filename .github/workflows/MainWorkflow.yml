@@ -1,50 +1,73 @@
 name: Main Workflow
 
 on:
-    push:
-        branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
-    build:
-        name: Build Job
-        runs-on: ubuntu-latest
+  build:
+    name: Build Job
+    runs-on: ubuntu-latest
 
-        steps:
-            -   uses: actions/checkout@v4
-            -   uses: ./.github/actions/build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build
 
-    test:
-        name: Test Job
-        runs-on: ubuntu-latest
-        needs: build
+  test:
+    name: Test Job
+    runs-on: ubuntu-latest
+    needs: build
 
-        steps:
-            -   uses: actions/checkout@v4
-            -   uses: ./.github/actions/test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/test
 
-    deploy_qa:
-        name: Deploy QA
-        runs-on: self-hosted
-        needs: [ build, test ]
+  deploy_qa:
+    name: Deploy QA
+    runs-on: self-hosted
+    needs: [ build, test ]
 
-        steps:
-            -   uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            -   name: Download Artifact
-                uses: actions/download-artifact@v4
-                with:
-                    name: jar-artifact
-                    path: tmp
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: jar-artifact
+          path: tmp
 
-            -   name: Stop the service
-                run: ssh ${{ vars.QA_PATH }} "sudo kill \$(pgrep java)"
-                continue-on-error: true
+      - name: Checkout properties repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'ZorpEngur/StreamTrackerProperties'
+          ref: 'qa'
+          token: ${{ secrets.PROPERTIES_ACCESS_TOKEN }}
+          path: 'tmp-prop'
 
-            -   name: Remove old jar
-                run: ssh ${{ vars.QA_PATH }} "rm -f ~/Desktop/TwitchBot.jar"
+      - name: Stop the service
+        run: ssh ${{ vars.QA_PATH }} "sudo kill \$(pgrep java)"
+        continue-on-error: true
 
-            -   name: Copy Artifact
-                run: scp tmp/TwitchBot.jar ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar
+      - name: Remove old artifact
+        run: ssh ${{ vars.QA_PATH }} "rm -f ~/Desktop/TwitchBot.jar"
 
-            -   name: Start the service
-                run: ssh ${{ vars.QA_PATH }} "sudo shutdown -r 1"
+      - name: Remove old properties
+        run: ssh ${{ vars.QA_PATH }} "rm -f ~/Desktop/application.properties"
+
+      - name: Remove old script
+        run: ssh ${{ vars.QA_PATH }} "rm -f ~/Desktop/botrun.sh"
+
+      - name: Copy artifact
+        run: scp tmp/TwitchBot.jar ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar
+
+      - name: Copy properties
+        run: scp tmp-prop/application.properties ${{ vars.QA_PATH }}:~/Desktop/application.properties
+
+      - name: Copy script
+        run: scp tmp-prop/botrun.sh ${{ vars.QA_PATH }}:~/Desktop/botrun.sh
+
+      - name: Change script access
+        run: ssh ${{ vars.QA_PATH }} "chmod +x ~/Desktop/botrun.sh"
+
+      - name: Start the service
+        run: ssh ${{ vars.QA_PATH }} "sudo shutdown -r 1"
