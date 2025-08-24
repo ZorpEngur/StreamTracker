@@ -1,23 +1,46 @@
 name: Deploy PROD
 
 on:
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-    deploy_prod:
-        name: Deploy PROD
-        runs-on: self-hosted
+  deploy_prod:
+    name: Deploy PROD
+    runs-on: self-hosted
 
-        steps:
-            -   name: Stop the service
-                run: ssh ${{ vars.PROD_PATH }} "sudo kill \$(pgrep java)"
-                continue-on-error: true
+    steps:
+      - name: Checkout properties repository
+        uses: actions/checkout@v4
+        with:
+          repository: 'ZorpEngur/StreamTrackerProperties'
+          ref: 'prod'
+          token: ${{ secrets.PROPERTIES_ACCESS_TOKEN }}
+          path: 'tmp-prop'
 
-            -   name: Remove old jar
-                run: ssh ${{ vars.PROD_PATH }} "rm -f ~/Desktop/TwitchBot.jar"
+      - name: Stop the service
+        run: ssh ${{ vars.PROD_PATH }} "sudo kill \$(pgrep java)"
+        continue-on-error: true
 
-            -   name: Copy Artifact
-                run: scp -3 ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
+      - name: Remove old artifact
+        run: ssh ${{ vars.PROD_PATH }} "rm -f ~/Desktop/TwitchBot.jar"
 
-            -   name: Start the service
-                run: ssh ${{ vars.PROD_PATH }} "sudo shutdown -r 1"
+      - name: Remove old properties
+        run: ssh ${{ vars.PROD_PATH }} "rm -f ~/Desktop/application.properties"
+
+      - name: Remove old script
+        run: ssh ${{ vars.PROD_PATH }} "rm -f ~/Desktop/botrun.sh"
+
+      - name: Copy artifact
+        run: scp -3 ${{ vars.QA_PATH }}:~/Desktop/TwitchBot.jar ${{ vars.PROD_PATH }}:~/Desktop/TwitchBot.jar
+
+      - name: Copy properties
+        run: scp tmp-prop/application.properties ${{ vars.PROD_PATH }}:~/Desktop/application.properties
+
+      - name: Copy script
+        run: scp tmp-prop/botrun.sh ${{ vars.PROD_PATH }}:~/Desktop/botrun.sh
+
+      - name: Change script access
+        run: ssh ${{ vars.PROD_PATH }} "chmod +x ~/Desktop/botrun.sh"
+
+      - name: Start the service
+        run: ssh ${{ vars.PROD_PATH }} "sudo shutdown -r 1"
