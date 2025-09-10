@@ -59,7 +59,17 @@ public class FileController {
      * @return Full path with name of the log.
      */
     public String logFilePath(@NonNull String streamName) {
-        return getVodDirectory().getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".mkv";
+        return getVodDirectory().getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
+    }
+
+    /**
+     * Creates file path of the chat log.
+     *
+     * @param streamName Name of the stream.
+     * @return Full path with name of the chat log.
+     */
+    public String chatFilePath(@NonNull String streamName) {
+        return getVodDirectory().getAbsolutePath() + "/CHAT_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
     }
 
     /**

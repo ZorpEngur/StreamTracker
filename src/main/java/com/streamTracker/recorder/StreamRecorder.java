@@ -34,6 +34,9 @@ public class StreamRecorder {
     @NonNull
     private final ApplicationProperties properties;
 
+    @NonNull
+    private final ChatRecorder chatRecorder;
+
     /**
      * Starts recording of a twitch stream.
      *
@@ -49,6 +52,7 @@ public class StreamRecorder {
 
         String fileName = this.fileController.vodFilePath(streamName);
         String logName = this.fileController.logFilePath(streamName);
+        this.chatRecorder.recordChat(streamName);
 
         try {
             BufferedReader i = new BufferedReader(

@@ -8,11 +8,13 @@ import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
+import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.streamTracker.ApplicationProperties;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.events.Event;
 import com.streamTracker.events.NewNotificationEvent;
 import com.streamTracker.events.EventHandler;
+import com.streamTracker.recorder.ChatRecorder;
 import com.streamTracker.recorder.StreamRecorder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +66,9 @@ public class TwitchLiveBot extends EventHandler {
      */
     @NonNull
     private final StreamRecorder streamRecorder;
+
+    @NonNull
+    private final ChatRecorder chatRecorder;
 
     /**
      * Starts twitch bot and register event handlers.
@@ -131,7 +136,11 @@ public class TwitchLiveBot extends EventHandler {
                         .toList();
                 sendMessage("(live predict)", event.getChannel().getName(), users);
             }
+            chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
         });
+
+        this.twitchClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event ->
+                chatRecorder.finishChatRecording(event.getChannel().getName()));
     }
 
     /**
