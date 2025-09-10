@@ -8,6 +8,7 @@ import com.streamTracker.notification.CommandManager;
 import com.streamTracker.notification.DiscordBot;
 import com.streamTracker.notification.TwitchCommandBot;
 import com.streamTracker.notification.TwitchLiveBot;
+import com.streamTracker.recorder.ChatRecorder;
 import com.streamTracker.recorder.FileController;
 import com.streamTracker.recorder.StreamRecorder;
 import jakarta.annotation.Nullable;
@@ -26,8 +27,9 @@ public class SpringConfiguration {
     @Bean
     @NonNull
     public TwitchLiveBot twitchLiveBot(@NonNull DiscordBot discordBot, @NonNull ApplicationProperties properties,
-                                       @NonNull TwitchBotService twitchBotService, @NonNull StreamRecorder streamRecorder) {
-        return new TwitchLiveBot(twitchBotService, discordBot, properties, streamRecorder).startBot();
+                                       @NonNull TwitchBotService twitchBotService, @NonNull StreamRecorder streamRecorder,
+                                       @NonNull ChatRecorder chatRecorder) {
+        return new TwitchLiveBot(twitchBotService, discordBot, properties, streamRecorder, chatRecorder).startBot();
     }
 
     @Bean
@@ -62,6 +64,12 @@ public class SpringConfiguration {
     public DiscordBot discordBot(@NonNull ApplicationProperties properties, @NonNull Clock clock,
                                  @NonNull UserService userService) {
         return new DiscordBot(properties, clock, userService);
+    }
+
+    @Bean
+    @NonNull
+    public ChatRecorder chatRecorder(@NonNull FileController fileController, @NonNull ApplicationProperties properties) {
+        return new ChatRecorder(fileController, properties);
     }
 
     @Bean
