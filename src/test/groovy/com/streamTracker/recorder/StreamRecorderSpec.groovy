@@ -1,8 +1,6 @@
-package com.streamTracker.notification
+package com.streamTracker.recorder
 
 import com.streamTracker.ApplicationProperties
-import com.streamTracker.recorder.FileController
-import com.streamTracker.recorder.StreamRecorder
 import spock.lang.Specification
 
 class StreamRecorderSpec extends Specification {

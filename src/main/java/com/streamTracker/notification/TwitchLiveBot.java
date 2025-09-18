@@ -5,14 +5,17 @@ import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageActionEvent;
+import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.events.ChannelChangeGameEvent;
 import com.github.twitch4j.events.ChannelChangeTitleEvent;
 import com.github.twitch4j.events.ChannelGoLiveEvent;
+import com.github.twitch4j.events.ChannelGoOfflineEvent;
 import com.streamTracker.ApplicationProperties;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.events.Event;
 import com.streamTracker.events.NewNotificationEvent;
 import com.streamTracker.events.EventHandler;
+import com.streamTracker.recorder.ChatRecorder;
 import com.streamTracker.recorder.StreamRecorder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +69,12 @@ public class TwitchLiveBot extends EventHandler {
     private final StreamRecorder streamRecorder;
 
     /**
+     * Recorder service for chat when stream is live.
+     */
+    @NonNull
+    private final ChatRecorder chatRecorder;
+
+    /**
      * Starts twitch bot and register event handlers.
      *
      * @see TwitchLiveBot#registerFeatures() Needs to be called to join bot to channels.
@@ -113,6 +122,7 @@ public class TwitchLiveBot extends EventHandler {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
             sendMessage("(live event)", streamModel.getStreamName(), streamModel.getUsers());
             if (streamModel.isRecordStream()) {
+                this.chatRecorder.recordChat(streamModel.getStreamName());
                 this.streamRecorder.record(streamModel.getStreamName());
             }
         });
@@ -131,7 +141,15 @@ public class TwitchLiveBot extends EventHandler {
                         .toList();
                 sendMessage("(live predict)", event.getChannel().getName(), users);
             }
+            chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
         });
+
+        this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+            chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
+        });
+
+        this.twitchClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event ->
+            chatRecorder.finishChatRecording(event.getChannel().getName()));
     }
 
     /**

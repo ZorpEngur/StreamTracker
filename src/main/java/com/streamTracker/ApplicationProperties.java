@@ -65,4 +65,9 @@ public class ApplicationProperties {
      */
     @NonNull
     private Duration discordShutdownDelay;
+
+    /**
+     * Size of the message que before recorder saves it on disk.
+     */
+    private int chatMessageQueue;
 }

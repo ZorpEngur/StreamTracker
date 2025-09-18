@@ -7,6 +7,7 @@ import com.github.twitch4j.chat.TwitchChat
 import com.streamTracker.ApplicationProperties
 import com.streamTracker.database.model.NotificationPlatform
 import com.streamTracker.database.twitch.TwitchBotService
+import com.streamTracker.recorder.ChatRecorder
 import com.streamTracker.recorder.StreamRecorder
 import spock.lang.Specification
 
@@ -24,7 +25,7 @@ class TwitchLiveBotSpec extends Specification {
         TwitchClient client = Mock() {
             getChat() >> chat
         }
-        def bot = new TwitchLiveBot(service, Mock(DiscordBot), Mock(ApplicationProperties), Mock(StreamRecorder))
+        def bot = new TwitchLiveBot(service, Mock(DiscordBot), Mock(ApplicationProperties), Mock(StreamRecorder), Mock(ChatRecorder))
         bot.twitchClient = client
 
         when:
@@ -35,6 +36,6 @@ class TwitchLiveBotSpec extends Specification {
         bot.streamModels.size() == 2
         1 * chat.joinChannel(_)
         1 * client.getClientHelper() >> Mock(TwitchClientHelper)
-        4 * client.getEventManager() >> Mock(EventManager)
+        6 * client.getEventManager() >> Mock(EventManager)
     }
 }
