@@ -48,6 +48,7 @@ public class FileController {
      * @param streamName Name of the stream.
      * @return Full path with name of the vod.
      */
+    @NonNull
     public String vodFilePath(@NonNull String streamName) {
         return getVodDirectory().getAbsolutePath() + "/VOD_" + streamName + "-" + dateFormat.format(new Date()) + ".mkv";
     }
@@ -58,6 +59,7 @@ public class FileController {
      * @param streamName Name of the stream.
      * @return Full path with name of the log.
      */
+    @NonNull
     public String logFilePath(@NonNull String streamName) {
         return getVodDirectory().getAbsolutePath() + "/LOG_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
     }
@@ -68,6 +70,7 @@ public class FileController {
      * @param streamName Name of the stream.
      * @return Full path with name of the chat log.
      */
+    @NonNull
     public String chatFilePath(@NonNull String streamName) {
         return getVodDirectory().getAbsolutePath() + "/CHAT_" + streamName + "-" + dateFormat.format(new Date()) + ".txt";
     }

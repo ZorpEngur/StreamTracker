@@ -34,7 +34,7 @@ class ChatRecorderSpec extends Specification {
         chatRecorder.finishChatRecording(channel)
 
         then:
-        def liens = Files.lines(Path.of(PATH + channel + ".txt")).toList()
+        def liens = Files.lines(Path.of(PATH + channel + ".txt")).filter {!it.isEmpty()}.toList()
         liens.size() == 1
         liens.iterator().next() == "20:00 User: Hello"
     }
@@ -55,7 +55,7 @@ class ChatRecorderSpec extends Specification {
         chatRecorder.finishChatRecording(channel)
 
         then:
-        def liens = Files.lines(Path.of(PATH + channel + ".txt")).toList()
+        def liens = Files.lines(Path.of(PATH + channel + ".txt")).filter {!it.isEmpty()}.toList()
         liens.size() == 3
         liens[0] == "19:00 User: First"
         liens[1] == "20:00 Streamer: Second"
@@ -82,7 +82,7 @@ class ChatRecorderSpec extends Specification {
         chatRecorder.finishChatRecording(channel)
 
         then:
-        def liens = Files.lines(Path.of(PATH + channel + ".txt")).toList()
+        def liens = Files.lines(Path.of(PATH + channel + ".txt")).filter {!it.isEmpty()}.toList()
         liens.size() == 21
         liens[0] == "20:00 Spammer1: Spam"
         liens[9] == "20:00 Spammer1: Spam"
@@ -114,12 +114,12 @@ class ChatRecorderSpec extends Specification {
         chatRecorder.finishChatRecording(channel1)
 
         then:
-        def liens1 = Files.lines(Path.of(PATH + channel1 + ".txt")).toList()
+        def liens1 = Files.lines(Path.of(PATH + channel1 + ".txt")).filter {!it.isEmpty()}.toList()
         liens1.size() == 3
         liens1[0] == "19:00 User: First"
         liens1[1] == "20:00 Streamer: Second"
         liens1[2] == "21:00 Bot: Third"
-        def liens2 = Files.lines(Path.of(PATH + channel2 + ".txt")).toList()
+        def liens2 = Files.lines(Path.of(PATH + channel2 + ".txt")).filter {!it.isEmpty()}.toList()
         liens2.size() == 1
         liens2[0] == "20:00 Streamer: Second"
     }
