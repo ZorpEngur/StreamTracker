@@ -69,5 +69,11 @@ public class ApplicationProperties {
     /**
      * Size of the message que before recorder saves it on disk.
      */
-    private int chatMessageQueue;
+    private int chatMessageQueueSize;
+
+    /**
+     * Duration for which the stream recording will be retried.
+     */
+    @NonNull
+    private Duration streamRecordingRetry;
 }

@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Recorder for twitch streams.
@@ -35,6 +37,12 @@ public class StreamRecorder {
     private final ApplicationProperties properties;
 
     /**
+     * List of the stream currently being recorded.
+     */
+    @NonNull
+    private final Map<String, LocalDateTime> recordingStreams = new ConcurrentHashMap<>();
+
+    /**
      * Starts recording of a twitch stream.
      *
      * @param streamName Name of twitch stream to record.
@@ -47,30 +55,58 @@ public class StreamRecorder {
         }
         log.debug("Recording initialization. {}", streamName);
 
-        String fileName = this.fileController.vodFilePath(streamName);
-        String logName = this.fileController.logFilePath(streamName);
+        if (recordingStreams.get(streamName) == null) {
+            recordingStreams.put(streamName, LocalDateTime.now());
+            new Thread(() -> executeCommands(streamName)).start();
+        } else {
+            log.trace("Stream already being recorded. {}", streamName);
+        }
+    }
 
+    /**
+     * Calls commands to start stream recording.
+     *
+     * @param streamName Name of twitch stream to record.
+     */
+    private void executeCommands(@NonNull String streamName) {
         try {
-            BufferedReader i = new BufferedReader(
+            String link = new BufferedReader(
                     new InputStreamReader(
                             Runtime.getRuntime()
                                     .exec(new String[]{cmdLine[0], cmdLine[1], "streamlink https://www.twitch.tv/" + streamName + " " + this.properties.getVodResolution() + " --stream-url"})
-                                    .getInputStream()
-                    )
-            );
+                                    .getInputStream()))
+                    .lines()
+                    .findFirst()
+                    .orElse(null);
 
-            i.lines().forEach(e -> {
-                log.debug("Stream link to recording: {}", e);
-                try {
-                    Runtime.getRuntime().exec(new String[]{cmdLine[0], cmdLine[1], "ffmpeg -i \"" + e + "\" -preset veryfast " + fileName + " 2> " + logName}).getInputStream();
-                    log.debug("Recording...");
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
+            if (link == null || link.startsWith("error")) {
+                if (this.recordingStreams.get(streamName).plus(this.properties.getStreamRecordingRetry()).isBefore(LocalDateTime.now())) {
+                    this.recordingStreams.remove(streamName);
+                    log.info("Couldn't get link for '{}' in time. Error: {}", streamName, link);
+                } else {
+                    Thread.sleep(5000);
+                    executeCommands(streamName);
                 }
-            });
+            } else {
+                log.debug("Stream link to recording: {}", link);
+                String fileName = this.fileController.vodFilePath(streamName);
+                String logName = this.fileController.logFilePath(streamName);
+                Runtime.getRuntime().exec(new String[]{cmdLine[0], cmdLine[1], "ffmpeg -i \"" + link + "\" -preset veryfast " + fileName + " 2> " + logName}).getInputStream();
+                log.debug("Recording...");
+            }
         } catch (Exception e) {
             log.error("Couldn't initialize recording.", e);
         }
+    }
+
+    /**
+     * Marks stream as offline so the recording might start again.
+     *
+     * @param streamName Name of twitch stream to record.
+     */
+    public void streamOffline(@NonNull String streamName) {
+        log.trace("Removing stream from recording list. {}", streamName);
+        this.recordingStreams.remove(streamName);
     }
 
     /**
