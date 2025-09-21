@@ -108,7 +108,7 @@ public class ChatRecorder {
          */
         public void message(@NonNull Instant time, @NonNull String user, @NonNull String message) {
             this.messages.add(new Message(time, user, message));
-            if (this.messages.size() == ChatRecorder.this.properties.getChatMessageQueue()) {
+            if (this.messages.size() == ChatRecorder.this.properties.getChatMessageQueueSize()) {
                 new Thread(this::save).start();
             }
         }

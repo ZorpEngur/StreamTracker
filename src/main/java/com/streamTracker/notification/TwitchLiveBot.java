@@ -121,35 +121,55 @@ public class TwitchLiveBot extends EventHandler {
         Objects.requireNonNull(this.twitchClient).getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
             sendMessage("(live event)", streamModel.getStreamName(), streamModel.getUsers());
-            if (streamModel.isRecordStream()) {
-                this.chatRecorder.recordChat(streamModel.getStreamName());
-                this.streamRecorder.record(streamModel.getStreamName());
-            }
+            recordStream(streamModel);
         });
 
-        this.twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event ->
-                sendMessage("(title change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers()));
+        this.twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
+            StreamModel streamModel = getStreamModel(event.getChannel().getName());
+            sendMessage("(title change event)", event.getChannel().getName(), streamModel.getUsers());
+            recordStream(streamModel);
+        });
 
-        this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event ->
-                sendMessage("(game category change event)", event.getChannel().getName(), getStreamModel(event.getChannel().getName()).getUsers()));
+        this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
+            StreamModel streamModel = getStreamModel(event.getChannel().getName());
+            sendMessage("(game category change event)", event.getChannel().getName(), streamModel.getUsers());
+            recordStream(streamModel);
+        });
 
         this.twitchClient.getEventManager().onEvent(ChannelMessageActionEvent.class, event -> {
             if ((event.getMessage().contains("NEW TITLE!") || event.getMessage().contains("NEW GAME!") || event.getMessage().contains("has gone live")) && event.getMessageEvent().getUserName().equalsIgnoreCase("TitleChange_Bot")) {
-                List<StreamModel.UserModel> users = getStreamModel(event.getChannel().getName()).getUsers()
+                StreamModel streamModel = getStreamModel(event.getChannel().getName());
+                List<StreamModel.UserModel> users = streamModel.getUsers()
                         .stream()
                         .filter(StreamModel.UserModel::isEnableStreamPredict)
                         .toList();
                 sendMessage("(live predict)", event.getChannel().getName(), users);
+                recordStream(streamModel);
             }
-            chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
+            this.chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
         });
 
         this.twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
-            chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
+            this.chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
         });
 
-        this.twitchClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event ->
-            chatRecorder.finishChatRecording(event.getChannel().getName()));
+        this.twitchClient.getEventManager().onEvent(ChannelGoOfflineEvent.class, event -> {
+            this.streamRecorder.streamOffline(event.getChannel().getName());
+            this.chatRecorder.finishChatRecording(event.getChannel().getName());
+        });
+
+    }
+
+    /**
+     * Records the stream if requested.
+     *
+     * @param stream Stream to be recorded.
+     */
+    private void recordStream(@NonNull StreamModel stream) {
+        if (stream.isRecordStream()) {
+            this.chatRecorder.recordChat(stream.getStreamName());
+            this.streamRecorder.record(stream.getStreamName());
+        }
     }
 
     /**

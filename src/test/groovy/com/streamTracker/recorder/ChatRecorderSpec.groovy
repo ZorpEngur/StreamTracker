@@ -16,7 +16,7 @@ class ChatRecorderSpec extends Specification {
     def setupSpec() {
         new File(PATH).mkdir()
         PROPERTIES = Mock() {
-            getChatMessageQueue() >> 10
+            getChatMessageQueueSize() >> 10
         }
     }
 
