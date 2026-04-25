@@ -1,6 +1,7 @@
 package com.streamTracker.api;
 
 import com.streamTracker.recorder.FileController;
+import com.streamTracker.recorder.StreamRecorder;
 import lombok.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -20,7 +21,7 @@ public class RestConfiguration implements WebMvcConfigurer {
 
     @Bean
     @NonNull
-    public VodResource vodResource(@NonNull FileController fIleController) {
-        return new VodResource(fIleController);
+    public VodResource vodResource(@NonNull FileController fIleController, @NonNull StreamRecorder streamRecorder) {
+        return new VodResource(fIleController, streamRecorder);
     }
 }

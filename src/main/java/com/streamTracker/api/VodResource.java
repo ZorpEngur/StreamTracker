@@ -1,6 +1,7 @@
 package com.streamTracker.api;
 
 import com.streamTracker.recorder.FileController;
+import com.streamTracker.recorder.StreamRecorder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,10 +16,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.util.List;
@@ -34,6 +32,12 @@ public class VodResource {
      */
     @NonNull
     private final FileController fileController;
+
+    /**
+     * Recorder for twitch streams.
+     */
+    @NonNull
+    private final StreamRecorder streamRecorder;
 
     @GetMapping("/download")
     @Operation(summary = "Download recorded stream.", description = "Download latest recorded stream or a specific stream if you provide valid name.")
@@ -68,5 +72,13 @@ public class VodResource {
         return ResponseEntity.ok(this.fileController.getAllVodFiles().stream()
                 .map(File::getName)
                 .toList());
+    }
+
+    @PutMapping
+    @Operation(summary = "Start recording stream", description = "Starts recording specified stream.")
+    @ApiResponse(responseCode = "200", description = "Stream is being recorded.")
+    public ResponseEntity<?> recordStream(@RequestParam(name = "stream") @Parameter(description = "Name of the stream to record.") String streamName) {
+        this.streamRecorder.record(streamName);
+        return ResponseEntity.ok().build();
     }
 }
