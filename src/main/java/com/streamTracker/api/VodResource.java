@@ -45,7 +45,11 @@ public class VodResource {
             @ApiResponse(responseCode = "200", description = "Requested video file", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE)),
             @ApiResponse(responseCode = "404", description = "Requested file or no file found.")
     })
-    public ResponseEntity<Resource> getVod(@RequestParam(name = "vodName") @Parameter(description = "Name of the vod to be returned.") @Nullable String vodName) {
+    public ResponseEntity<Resource> getVod(
+            @RequestParam(name = "vodName")
+            @Parameter(description = "Name of the vod to be returned.")
+            @Nullable String vodName
+    ) {
         File file;
         if (vodName != null) {
             file = this.fileController.getAllVodFiles().stream()
@@ -74,10 +78,14 @@ public class VodResource {
                 .toList());
     }
 
-    @PutMapping
+    @PutMapping("/record")
     @Operation(summary = "Start recording stream", description = "Starts recording specified stream.")
     @ApiResponse(responseCode = "200", description = "Stream is being recorded.")
-    public ResponseEntity<?> recordStream(@RequestParam(name = "stream") @Parameter(description = "Name of the stream to record.") String streamName) {
+    public ResponseEntity<?> recordStream(
+            @RequestParam(name = "stream")
+            @Parameter(description = "Name of the stream to record.", required = true)
+            @NonNull String streamName
+    ) {
         this.streamRecorder.record(streamName);
         return ResponseEntity.ok().build();
     }
