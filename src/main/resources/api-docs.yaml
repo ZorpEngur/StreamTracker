@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: SystemResource
+  description: Endpoints for getting system information.
+- name: VodResource
+  description: Endpoints for working with recorded streams.
+paths:
+  /vods:
+    get:
+      tags:
+      - VodResource
+      summary: Get all recorded streams.
+      description: Returns names of all available recorded streams.
+      operationId: getAvailableVodNames
+      responses:
+        "200":
+          description: List of all available recordings. May be omitted if you want
+            to get last recording.
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  type: string
+  /vods/download:
+    get:
+      tags:
+      - VodResource
+      summary: Download recorded stream.
+      description: Download latest recorded stream or a specific stream if you provide
+        valid name.
+      operationId: getVod
+      parameters:
+      - name: vodName
+        in: query
+        description: Name of the vod to be returned.
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Requested video file
+          content:
+            application/octet-stream: {}
+        "404":
+          description: Requested file or no file found.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+  /system/actions:
+    get:
+      tags:
+      - SystemResource
+      summary: Get list of all recent actions.
+      description: Returns list off all recent actions ran by the server.
+      operationId: getActions
+      responses:
+        "200":
+          description: List of all recent actions.
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Action"
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        version:
+          type: integer
+          format: int32
+        code:
+          type: string
+        filterDuplicit:
+          type: boolean
+        body:
+          type: string
+        date:
+          type: string
+          format: date-time
+      required:
+      - body
+      - code
+      - date
+      - filterDuplicit
+      - version

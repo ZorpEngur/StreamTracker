@@ -76,4 +76,21 @@ public class ApplicationProperties {
      */
     @NonNull
     private Duration streamRecordingRetry;
+
+    /**
+     * Time the server will wait for fallback to activate.
+     */
+    @NonNull
+    private Duration fallbackWaitTime;
+
+    /**
+     * Url of server this instance is acting as fallback for.
+     */
+    @Nullable
+    private String fallbackUrl;
+
+    /**
+     * Action que size.
+     */
+    private int actionQueSize;
 }
