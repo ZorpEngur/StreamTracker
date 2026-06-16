@@ -33,7 +33,9 @@ public interface TwitchBotMapper {
     @Options(useGeneratedKeys = true, keyProperty = "streamId", keyColumn = "id")
     void insertStream(@NonNull TwitchUserRelModel model);
 
-    @Insert("INSERT INTO stream_tracker.twitch_streams_users_rel (twitch_id, user_id, recorder_enabled, stream_prediction_enabled, platform_id) VALUES (#{streamId}, #{userId}, #{recordStream}, #{streamPrediction}, #{notificationPlatform.id})")
+    @Insert("INSERT INTO stream_tracker.twitch_streams_users_rel " +
+            "(twitch_id, user_id, recorder_enabled, stream_prediction_enabled, title_change_enabled, game_change_enabled, platform_id) " +
+            "VALUES (#{streamId}, #{userId}, #{recordStream}, #{streamPrediction}, #{titleChange}, #{gameChange}, #{notificationPlatform.id})")
     void insertStreamUserRel(@NonNull TwitchUserRelModel model);
 
     @Select("SELECT EXISTS(SELECT 1 FROM stream_tracker.twitch_streams_users_rel WHERE twitch_id=#{streamId} AND user_id=#{userId})")
@@ -46,6 +48,8 @@ public interface TwitchBotMapper {
             @Arg(column = "user_id", javaType = int.class),
             @Arg(column = "recorder_enabled", javaType = boolean.class),
             @Arg(column = "stream_prediction_enabled", javaType = boolean.class),
+            @Arg(column = "title_change_enabled", javaType = boolean.class),
+            @Arg(column = "game_change_enabled", javaType = boolean.class),
             @Arg(column = "platform_id", javaType = NotificationPlatform.class, typeHandler = NotificationPlatformHandler.class)
     })
     List<TwitchUserRelModel> getStreamModels();

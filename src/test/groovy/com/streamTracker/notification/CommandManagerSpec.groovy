@@ -62,14 +62,16 @@ class CommandManagerSpec extends Specification {
                 .userId(userId)
                 .recordStream(recordStream)
                 .streamPrediction(streamPredict)
+                .titleChange(title)
+                .gameChange(game)
                 .notificationPlatform(notificationPlatform)
                 .build())
 
         where:
-        command                                            | streamName | userId | recordStream | streamPredict | notificationPlatform
-        "set -u:First User -t:test -r -predict -p:DISCORD" | "test"     | 1      | true         | true          | NotificationPlatform.DISCORD
-        "set -t:test -p:discord -r"                        | "test"     | 2      | true         | false         | NotificationPlatform.DISCORD
-        "set -p:discord -t:test"                           | "test"     | 2      | false        | false         | NotificationPlatform.DISCORD
+        command                                                         | streamName | userId | recordStream | streamPredict | notificationPlatform         | title | game
+        "set -u:First User -t:test -r -predict -game -title -p:DISCORD" | "test"     | 1      | true         | true          | NotificationPlatform.DISCORD | true  | true
+        "set -t:test -p:discord -r -game"                               | "test"     | 2      | true         | false         | NotificationPlatform.DISCORD | false | true
+        "set -p:discord -t:test"                                        | "test"     | 2      | false        | false         | NotificationPlatform.DISCORD | false | false
     }
 
     void "fail parser set command"() {

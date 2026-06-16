@@ -51,6 +51,16 @@ public class TwitchUserRelModel {
     private boolean streamPrediction;
 
     /**
+     * If notification is sent on title change event.
+     */
+    private boolean titleChange;
+
+    /**
+     * If notification is sent on game change event.
+     */
+    private boolean gameChange;
+
+    /**
      * Identifier of the notification platform.
      */
     @NonNull

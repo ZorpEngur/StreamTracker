@@ -51,6 +51,16 @@ public class StreamModel {
         private final boolean enableStreamPredict;
 
         /**
+         * Flag if notification should be sent on title change event;
+         */
+        private final boolean enableTitleChange;
+
+        /**
+         * Flag if notification should be sent on game change event;
+         */
+        private final boolean enableGameChange;
+
+        /**
          * Last time user was pinged.
          */
         @Setter

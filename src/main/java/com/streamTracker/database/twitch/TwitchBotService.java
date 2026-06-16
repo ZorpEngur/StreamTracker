@@ -32,7 +32,8 @@ public class TwitchBotService {
                 .values().stream()
                 .map(l -> new StreamModel(l.get(0).getStreamName(),
                         l.stream().anyMatch(TwitchUserRelModel::isRecordStream),
-                        l.stream().map(u -> new StreamModel.UserModel(u.getUserId(), u.isStreamPrediction(), u.getNotificationPlatform())).toList()))
+                        l.stream().map(u -> new StreamModel.UserModel(u.getUserId(), u.isStreamPrediction(),
+                                u.isTitleChange(), u.isGameChange(), u.getNotificationPlatform())).toList()))
                 .toList();
     }
 

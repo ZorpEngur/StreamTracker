@@ -120,19 +120,27 @@ public class TwitchLiveBot extends EventHandler {
     private void registerEvents() {
         Objects.requireNonNull(this.twitchClient).getEventManager().onEvent(ChannelGoLiveEvent.class, event -> {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
-            sendMessage("(live event)", streamModel.getStreamName(), streamModel.getUsers());
+            sendMessage(streamModel.getStreamName() + " went live!", streamModel.getStreamName(), streamModel.getUsers());
             recordStream(streamModel);
         });
 
         this.twitchClient.getEventManager().onEvent(ChannelChangeTitleEvent.class, event -> {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
-            sendMessage("(title change event)", event.getChannel().getName(), streamModel.getUsers());
+            List<StreamModel.UserModel> users = streamModel.getUsers()
+                    .stream()
+                    .filter(StreamModel.UserModel::isEnableTitleChange)
+                    .toList();
+            sendMessage("Title changed to " + event.getTitle() + ".", event.getChannel().getName(), users);
             recordStream(streamModel);
         });
 
         this.twitchClient.getEventManager().onEvent(ChannelChangeGameEvent.class, event -> {
             StreamModel streamModel = getStreamModel(event.getChannel().getName());
-            sendMessage("(game category change event)", event.getChannel().getName(), streamModel.getUsers());
+            List<StreamModel.UserModel> users = streamModel.getUsers()
+                    .stream()
+                    .filter(StreamModel.UserModel::isEnableGameChange)
+                    .toList();
+            sendMessage("Game changed to " + event.getGameId() + ".", event.getChannel().getName(), users);
             recordStream(streamModel);
         });
 
@@ -143,7 +151,7 @@ public class TwitchLiveBot extends EventHandler {
                         .stream()
                         .filter(StreamModel.UserModel::isEnableStreamPredict)
                         .toList();
-                sendMessage("(live predict)", event.getChannel().getName(), users);
+                sendMessage("Stream might go live soon.", event.getChannel().getName(), users);
                 recordStream(streamModel);
             }
             this.chatRecorder.message(event.getChannel().getName(), event.getFiredAtInstant(), event.getUser().getName(), event.getMessage());
@@ -175,12 +183,12 @@ public class TwitchLiveBot extends EventHandler {
     /**
      * Requests Discord bot to send the message.
      *
-     * @param eventType Identifier of the event for statistical purposes.
-     * @param channel   Name of the channel that went live.
+     * @param message Message to be sent.
+     * @param channel Name of the channel that went live.
      */
-    private void sendMessage(@NonNull String eventType, @NonNull String channel, @NonNull List<StreamModel.UserModel> users) {
-        log.trace("Send message called with event {} for channel {}.", eventType, channel);
-        this.discordBot.sendMessage(users, channel + " went live! " + eventType + "\nhttps://www.twitch.tv/" + channel);
+    private void sendMessage(@NonNull String message, @NonNull String channel, @NonNull List<StreamModel.UserModel> users) {
+        log.trace("Send message {} for channel {}.", message, channel);
+        this.discordBot.sendMessage(users, message + "\nhttps://www.twitch.tv/" + channel);
     }
 
     /**

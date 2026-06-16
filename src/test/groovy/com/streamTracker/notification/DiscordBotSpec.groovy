@@ -32,8 +32,8 @@ class DiscordBotSpec extends Specification {
         bot.jdaInstance = jda
         bot.destroyLock.set(true)
 
-        def user1 = new StreamModel.UserModel(1, true, NotificationPlatform.DISCORD)
-        def user2 = new StreamModel.UserModel(2, true, NotificationPlatform.DISCORD)
+        def user1 = new StreamModel.UserModel(1, true, true, true, NotificationPlatform.DISCORD)
+        def user2 = new StreamModel.UserModel(2, true, true, true, NotificationPlatform.DISCORD)
         user1.lastPing = LocalDateTime.MIN
         user2.lastPing = LocalDateTime.now(clock)
         def users = [user1, user2]

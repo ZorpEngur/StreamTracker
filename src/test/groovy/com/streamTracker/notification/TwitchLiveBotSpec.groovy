@@ -16,8 +16,8 @@ class TwitchLiveBotSpec extends Specification {
     void "Should load users"() {
         given:
         TwitchBotService service = Mock() {
-            1 * getStreamerModels() >> [new StreamModel("stream", true, [new StreamModel.UserModel(1, true, NotificationPlatform.DISCORD)]),
-                                        new StreamModel("existingStream", true, [new StreamModel.UserModel(1, false, NotificationPlatform.DISCORD)])]
+            1 * getStreamerModels() >> [new StreamModel("stream", true, [new StreamModel.UserModel(1, true, true, true, NotificationPlatform.DISCORD)]),
+                                        new StreamModel("existingStream", true, [new StreamModel.UserModel(1, false, false, false, NotificationPlatform.DISCORD)])]
         }
         TwitchChat chat = Mock() {
             getChannels() >> ["existingStream"]
