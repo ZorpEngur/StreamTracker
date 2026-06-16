@@ -6,11 +6,16 @@ import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.streamTracker.ApplicationProperties;
+import com.streamTracker.actions.Action;
+import com.streamTracker.actions.ActionsInterface;
+import com.streamTracker.actions.ActionsService;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Clock;
 import java.util.Objects;
 
 /**
@@ -18,7 +23,7 @@ import java.util.Objects;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TwitchCommandBot {
+public class TwitchCommandBot implements ActionsInterface {
 
     /**
      * Client of the bot.
@@ -29,7 +34,7 @@ public class TwitchCommandBot {
     /**
      * Properties for the application.
      */
-    @NonNull
+    @NonNull @Getter
     private final ApplicationProperties properties;
 
     /**
@@ -37,6 +42,18 @@ public class TwitchCommandBot {
      */
     @NonNull
     private final CommandManager commandManager;
+
+    /**
+     * Actions service.
+     */
+    @NonNull @Getter
+    private final ActionsService actionsService;
+
+    /**
+     * System clock.
+     */
+    @NonNull
+    private final Clock clock;
 
     /**
      * Starts the bot.
@@ -68,7 +85,7 @@ public class TwitchCommandBot {
             if (event.getUser().getName().equalsIgnoreCase(this.properties.getManageChannel())) {
                 try {
                     String response = this.commandManager.parseCommand(event.getMessage(), Long.valueOf(event.getUser().getId()), event.getUser().getName());
-                    if (response != null) {
+                    if (response != null && action(Action.commandResponse(event.getChannel().getName(), response, clock), false)) {
                         this.twitchClient.getChat().sendMessage(event.getChannel().getName(), response);
                     }
                 } catch (CommandException ex) {

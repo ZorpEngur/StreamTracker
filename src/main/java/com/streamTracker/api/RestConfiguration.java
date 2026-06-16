@@ -1,5 +1,6 @@
 package com.streamTracker.api;
 
+import com.streamTracker.actions.ActionsService;
 import com.streamTracker.recorder.FileController;
 import com.streamTracker.recorder.StreamRecorder;
 import lombok.NonNull;
@@ -23,5 +24,11 @@ public class RestConfiguration implements WebMvcConfigurer {
     @NonNull
     public VodResource vodResource(@NonNull FileController fIleController, @NonNull StreamRecorder streamRecorder) {
         return new VodResource(fIleController, streamRecorder);
+    }
+
+    @Bean
+    @NonNull
+    public SystemResource systemResource(@NonNull ActionsService actionsService) {
+        return new SystemResource(actionsService);
     }
 }

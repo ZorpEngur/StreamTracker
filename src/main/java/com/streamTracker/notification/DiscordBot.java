@@ -1,6 +1,9 @@
 package com.streamTracker.notification;
 
 import com.streamTracker.ApplicationProperties;
+import com.streamTracker.actions.Action;
+import com.streamTracker.actions.ActionsInterface;
+import com.streamTracker.actions.ActionsService;
 import com.streamTracker.database.model.NotificationPlatform;
 import com.streamTracker.database.model.UserDatabaseModel;
 import com.streamTracker.database.user.UserService;
@@ -28,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class DiscordBot extends ListenerAdapter {
+public class DiscordBot extends ListenerAdapter implements ActionsInterface {
 
     /**
      * The bot JDA instance.
@@ -51,7 +54,7 @@ public class DiscordBot extends ListenerAdapter {
     /**
      * Properties of the application.
      */
-    @NonNull
+    @NonNull @Getter
     private final ApplicationProperties properties;
 
     /**
@@ -65,6 +68,12 @@ public class DiscordBot extends ListenerAdapter {
      */
     @NonNull
     private final UserService userService;
+
+    /**
+     * Actions service.
+     */
+    @NonNull @Getter
+    private final ActionsService actionsService;
 
     /**
      * Creates the bot that sends the message and shutdowns itself.
@@ -119,9 +128,13 @@ public class DiscordBot extends ListenerAdapter {
      */
     private void sendMessages(@NonNull List<DiscordUser> users, @NonNull String message) {
         log.debug("Sending message to users {}, {}", users.stream().map(DiscordUser::getName).toList(), message);
+        assert this.jdaInstance != null : "JDA instance should be set at this point.";
+        boolean skipWait = false;
         for (DiscordUser user : users) {
-            assert this.jdaInstance != null : "JDA instance should be set at this point.";
-            this.jdaInstance.openPrivateChannelById(user.getDiscordId()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
+            if (action(Action.notification(user.getName(), message, this.clock), skipWait)) {
+                this.jdaInstance.openPrivateChannelById(user.getDiscordId()).queue((privateChannel -> privateChannel.sendMessage(message).queue()));
+            }
+            skipWait = true;
         }
         if (this.destroyLock.compareAndSet(false, true)) {
             new Thread(this::timedShutDown).start();

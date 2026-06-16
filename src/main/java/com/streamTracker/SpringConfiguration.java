@@ -1,6 +1,8 @@
 package com.streamTracker;
 
+import com.streamTracker.actions.ActionsService;
 import com.streamTracker.api.RestConfiguration;
+import com.streamTracker.api.SystemResourceApi;
 import com.streamTracker.database.DatabaseConfiguration;
 import com.streamTracker.database.twitch.TwitchBotService;
 import com.streamTracker.database.user.UserService;
@@ -34,9 +36,10 @@ public class SpringConfiguration {
 
     @Bean
     @Nullable
-    public TwitchCommandBot twitchCommandBot(@NonNull ApplicationProperties properties, @NonNull CommandManager commandManager) {
+    public TwitchCommandBot twitchCommandBot(@NonNull ApplicationProperties properties, @NonNull CommandManager commandManager,
+                                             @NonNull ActionsService actionsService, @NonNull Clock clock) {
         if (properties.getManageChannel() != null) {
-            return new TwitchCommandBot(properties, commandManager).startBot();
+            return new TwitchCommandBot(properties, commandManager, actionsService, clock).startBot();
         }
         return null;
     }
@@ -62,8 +65,8 @@ public class SpringConfiguration {
     @Bean
     @NonNull
     public DiscordBot discordBot(@NonNull ApplicationProperties properties, @NonNull Clock clock,
-                                 @NonNull UserService userService) {
-        return new DiscordBot(properties, clock, userService);
+                                 @NonNull UserService userService, @NonNull ActionsService actionsService) {
+        return new DiscordBot(properties, clock, userService, actionsService);
     }
 
     @Bean
@@ -83,5 +86,25 @@ public class SpringConfiguration {
     @NonNull
     public Clock clock() {
         return Clock.systemUTC();
+    }
+
+    @Bean
+    @NonNull
+    public ActionsService actionsService(@NonNull SystemResourceApi systemResourceApi, @NonNull ApplicationProperties properties) {
+        return new ActionsService(properties, systemResourceApi);
+    }
+
+    @Bean
+    @NonNull
+    public ApiClient apiClient(@NonNull ApplicationProperties properties) {
+        ApiClient apiClient = new ApiClient();
+        apiClient.setBasePath(properties.getFallbackUrl());
+        return apiClient;
+    }
+
+    @Bean
+    @NonNull
+    public SystemResourceApi systemResourceApi(@NonNull ApiClient apiClient) {
+        return new SystemResourceApi(apiClient);
     }
 }

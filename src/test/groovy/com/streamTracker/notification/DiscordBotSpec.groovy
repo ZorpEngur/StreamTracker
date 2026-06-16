@@ -1,6 +1,8 @@
 package com.streamTracker.notification
 
 import com.streamTracker.ApplicationProperties
+import com.streamTracker.actions.Action
+import com.streamTracker.actions.ActionsService
 import com.streamTracker.database.model.NotificationPlatform
 import com.streamTracker.database.model.UserDatabaseModel
 import com.streamTracker.database.user.UserService
@@ -25,7 +27,8 @@ class DiscordBotSpec extends Specification {
         }
 
         def bot = new DiscordBot(Mock(ApplicationProperties) {getMessageDelay() >> Duration.ofHours(1)}, clock,
-                Mock(UserService) { getUser(_) >> Mock(UserDatabaseModel) { getDiscordId() >> 1; getName() >> "name" } })
+                Mock(UserService) { getUser(_ as Integer) >> Mock(UserDatabaseModel) { getDiscordId() >> 1; getName() >> "name" } },
+                Mock(ActionsService) {checkAction(_ as Action) >> false})
         bot.jdaInstance = jda
         bot.destroyLock.set(true)
 
