@@ -148,6 +148,12 @@ public class CommandManager extends EventHandler {
                 case PREDICT:
                     builder.streamPrediction(true);
                     break;
+                case TITLE:
+                    builder.titleChange(true);
+                    break;
+                case GAME:
+                    builder.gameChange(true);
+                    break;
                 case PLATFORM:
                     if (param.length == 2) {
                         NotificationPlatform platform = NotificationPlatform.fromName(param[1]);
@@ -227,6 +233,8 @@ public class CommandManager extends EventHandler {
         PLATFORM("platform", "p", true, "Platform where you will be notified: " + Arrays.toString(NotificationPlatform.values())),
         NOTME("notme", null, false, "Used if you don't want to be associated with this user."),
         PREDICT("predict", null, false, "If you want to be notified of the stream in advance. Might not work reliably. !EXPERIMENTAL FEATURE!"),
+        TITLE("title", null, false, "If you want to be notified on title change event."),
+        GAME("game", null, false, "If you want to be notified on game change event."),
         NAME("name", null, true, "Name of the user so he can be referenced later. If not provided, your name is used."),
         VOID("VOID", null, false, "VOID");
 
