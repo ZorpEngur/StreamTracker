@@ -89,6 +89,7 @@ public class TwitchCommandBot implements ActionsInterface {
                         this.twitchClient.getChat().sendMessage(event.getChannel().getName(), response);
                     }
                 } catch (CommandException ex) {
+                    //qa doesnt work
                     this.twitchClient.getChat().sendMessage(event.getChannel().getName(), ex.getMessage());
                 } catch (Exception ex) {
                     log.warn("Error in command:", ex);
