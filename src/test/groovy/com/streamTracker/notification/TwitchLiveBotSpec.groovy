@@ -20,7 +20,7 @@ class TwitchLiveBotSpec extends Specification {
                                         new StreamModel("existingStream", true, [new StreamModel.UserModel(1, false, false, false, NotificationPlatform.DISCORD)])]
         }
         TwitchChat chat = Mock() {
-            getChannels() >> ["existingStream"]
+            getChannels() >> ["existingStream", "channelToLeave"]
         }
         TwitchClient client = Mock() {
             getChat() >> chat
@@ -35,7 +35,8 @@ class TwitchLiveBotSpec extends Specification {
         then:
         bot.streamModels.size() == 2
         1 * chat.joinChannel(_)
-        1 * client.getClientHelper() >> Mock(TwitchClientHelper)
+        1 * chat.leaveChannel(_)
+        2 * client.getClientHelper() >> Mock(TwitchClientHelper)
         6 * client.getEventManager() >> Mock(EventManager)
     }
 }
