@@ -108,7 +108,7 @@ public class TwitchLiveBot extends EventHandler {
     /**
      * Loads all users for this bot.
      */
-    private void loadUsers() {
+    public void loadUsers() {
         this.streamModels = this.twitchBotService.getStreamerModels();
         this.streamModels.forEach(m -> log.debug("Loaded channel: {} with record stream: {} and users: {}", m.getStreamName(), m.isRecordStream(), m.getUsers().stream().map(StreamModel.UserModel::getId).toList()));
         registerFeatures();
@@ -215,11 +215,20 @@ public class TwitchLiveBot extends EventHandler {
      */
     private void registerFeatures() {
         List<String> streams = this.streamModels.stream().map(StreamModel::getStreamName).toList();
-        Objects.requireNonNull(this.twitchClient).getClientHelper().enableStreamEventListener(streams);
-        for (String stream : streams) {
-            if (!this.twitchClient.getChat().getChannels().contains(stream)) {
-                this.twitchClient.getChat().joinChannel(stream);
-            }
+        List<String> joinedStreams = Objects.requireNonNull(this.twitchClient).getChat().getChannels().stream().toList();
+        List<String> channelsToJoin = streams.stream()
+                .filter(e -> !joinedStreams.contains(e))
+                .toList();
+        List<String> channelsToLeave = joinedStreams.stream()
+                .filter(e -> !streams.contains(e))
+                .toList();
+        this.twitchClient.getClientHelper().enableStreamEventListener(channelsToJoin);
+        this.twitchClient.getClientHelper().disableStreamEventListener(channelsToLeave);
+        for (String stream : channelsToJoin) {
+            this.twitchClient.getChat().joinChannel(stream);
+        }
+        for (String stream : channelsToLeave) {
+            this.twitchClient.getChat().leaveChannel(stream);
         }
     }
 

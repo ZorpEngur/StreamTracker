@@ -15,23 +15,28 @@ import com.streamTracker.recorder.FileController;
 import com.streamTracker.recorder.StreamRecorder;
 import jakarta.annotation.Nullable;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.time.Clock;
 
+@Slf4j
 @Configuration
 @Import({DatabaseConfiguration.class, RestConfiguration.class})
 public class SpringConfiguration {
+
+    private static TwitchLiveBot TWITCH_LIVE_BOT;
 
     @Bean
     @NonNull
     public TwitchLiveBot twitchLiveBot(@NonNull DiscordBot discordBot, @NonNull ApplicationProperties properties,
                                        @NonNull TwitchBotService twitchBotService, @NonNull StreamRecorder streamRecorder,
                                        @NonNull ChatRecorder chatRecorder) {
-        return new TwitchLiveBot(twitchBotService, discordBot, properties, streamRecorder, chatRecorder).startBot();
+        return TWITCH_LIVE_BOT = new TwitchLiveBot(twitchBotService, discordBot, properties, streamRecorder, chatRecorder).startBot();
     }
 
     @Bean
@@ -106,5 +111,11 @@ public class SpringConfiguration {
     @NonNull
     public SystemResourceApi systemResourceApi(@NonNull ApiClient apiClient) {
         return new SystemResourceApi(apiClient);
+    }
+
+    @Scheduled(cron = "${stream.tracker.dbSyncChron}")
+    public void dbSyncJob() {
+        log.info("DB sync job running.");
+        TWITCH_LIVE_BOT.loadUsers();
     }
 }

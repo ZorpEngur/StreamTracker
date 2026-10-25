@@ -36,6 +36,11 @@ stream.tracker.vodResolution={resolution of stream, in which the vod is recorded
 stream.tracker.messageDelay={delay between repeated messages for same stream; e.g. PT10M}
 stream.tracker.spaceThreshold={space on disk in GB that is required for recoding streams; if there is not enough space bot will delete old vods}
 stream.tracker.discordShutdownDelay={delay after which discord bot is shut down after sending message}
+stream.tracker.chatMessageQueueSize={how many messages are stored in memory before they get written to disk}
+stream.tracker.streamRecordingRetry={for how long should the app be retrying to initiate stream recording - for stream predict there is no guarantee that the stream starts}
+stream.tracker.fallbackWaitTime={how long QA waits before it takes over PROD and executes the actions}
+stream.tracker.actionQueSize={how big is queue of actions for PROD and QA verification}
+stream.tracker.dbSyncChron={chron job for synchronising db with cached data}
 ```
 
 After running the bot, database will get initialized and you will need to insert for who to get notifications.\
