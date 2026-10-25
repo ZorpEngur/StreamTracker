@@ -208,6 +208,8 @@ public class CommandManager extends EventHandler {
                 answer.append(Parameters.TWITCH);
                 answer.append(Parameters.PLATFORM);
                 answer.append(Parameters.RECORD);
+                answer.append(Parameters.TITLE);
+                answer.append(Parameters.GAME);
                 answer.append(Parameters.PREDICT);
             }
         }

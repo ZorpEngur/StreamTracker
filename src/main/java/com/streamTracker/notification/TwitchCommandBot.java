@@ -89,10 +89,14 @@ public class TwitchCommandBot implements ActionsInterface {
                         this.twitchClient.getChat().sendMessage(event.getChannel().getName(), response);
                     }
                 } catch (CommandException ex) {
-                    this.twitchClient.getChat().sendMessage(event.getChannel().getName(), ex.getMessage());
+                    if (action(Action.commandResponse(event.getChannel().getName(), ex.getMessage(), clock), false)) {
+                        this.twitchClient.getChat().sendMessage(event.getChannel().getName(), ex.getMessage());
+                    }
                 } catch (Exception ex) {
                     log.warn("Error in command:", ex);
-                    this.twitchClient.getChat().sendMessage(event.getChannel().getName(), "Error has occurred. :/");
+                    if (action(Action.commandResponse(event.getChannel().getName(), "Error has occurred. :/", clock), false)) {
+                        this.twitchClient.getChat().sendMessage(event.getChannel().getName(), "Error has occurred. :/");
+                    }
                 }
             }
         });
